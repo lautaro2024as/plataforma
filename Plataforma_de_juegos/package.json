@@ -1,0 +1,12 @@
+{
+  "name": "plataforma-de-juegos",
+  "version": "1.0.0",
+  "description": "Sistema Central OMEGA - Plataforma de Juegos",
+  "private": true,
+  "scripts": {
+    "build": "echo 'No build step required for Django project'"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^1.4.1"
+  }
+}
