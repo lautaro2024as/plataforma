@@ -1,0 +1,51 @@
+/* OMEGA LIVE CHARACTER LAYER
+   The dashboard stays intact; this file only controls the autonomous character layer.
+*/
+
+#omega-actor{right:0!important;bottom:0!important;left:auto!important;inset-top:auto!important;width:min(52vw,780px)!important;height:min(74vh,760px)!important;z-index:18!important;display:block!important;pointer-events:none!important;transform:translate3d(var(--ax,0),var(--ay,0),0) rotate(var(--at,0deg));transition:transform .18s cubic-bezier(.2,.8,.22,1),filter .25s ease;will-change:transform,filter;isolation:isolate;}
+#omega-actor.omega-character-host{overflow:visible}
+#omega-actor video,#omega-actor svg{position:absolute;right:0;bottom:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;display:block;background:transparent;border:0;outline:0;mix-blend-mode:screen;filter:saturate(1.12) contrast(1.04) drop-shadow(0 0 14px rgba(255,40,231,.24));-webkit-mask-image:radial-gradient(ellipse 67% 75% at 55% 55%,#000 49%,rgba(0,0,0,.92) 61%,rgba(0,0,0,.52) 72%,transparent 91%);mask-image:radial-gradient(ellipse 67% 75% at 55% 55%,#000 49%,rgba(0,0,0,.92) 61%,rgba(0,0,0,.52) 72%,transparent 91%);}
+
+/* Natural idle motion: subtle chest/body rise, hair sway, chair shift. */
+#omega-actor .omega-puppet-motion{position:absolute;inset:5% 2% 0;transform-origin:65% 78%;animation:omegaBreathing 4.8s ease-in-out infinite;}
+@keyframes omegaBreathing{0%,100%{transform:translate3d(0,0,0) scale(1) rotate(0)}35%{transform:translate3d(-2px,-2px,0) scale(1.003,1.006) rotate(-.18deg)}58%{transform:translate3d(1px,-5px,0) scale(1.008,1.012) rotate(.18deg)}76%{transform:translate3d(0,-2px,0) scale(1.003,1.005) rotate(0)} }
+
+/* Hair/light movement layered over the character without replacing her. */
+#omega-actor:before{content:"";position:absolute;right:15%;top:7%;width:54%;height:62%;border-radius:50%;background:radial-gradient(ellipse,rgba(164,75,255,.14),transparent 62%);filter:blur(18px);opacity:.5;transform-origin:70% 70%;animation:omegaHairGlow 5.7s ease-in-out infinite alternate;z-index:2;}
+@keyframes omegaHairGlow{from{transform:translate3d(-4px,0,0) scale(.98) rotate(-1deg);opacity:.34}to{transform:translate3d(6px,-8px,0) scale(1.04) rotate(1deg);opacity:.68}}
+
+/* Ambient cigarette smoke, independent of the character asset. */
+.omega-smoke-field{position:absolute;right:20%;top:7%;width:26%;height:45%;z-index:25;pointer-events:none;filter:blur(.3px);}
+.omega-smoke-field i{position:absolute;display:block;width:42px;height:70px;border-radius:50%;border:2px solid rgba(214,250,255,.30);border-left-color:rgba(255,65,228,.16);border-bottom-color:transparent;opacity:0;transform:rotate(20deg);animation:omegaSmoke 6.3s ease-in-out infinite;}
+.omega-smoke-field i:nth-child(1){right:10%;bottom:7%;animation-delay:0s}.omega-smoke-field i:nth-child(2){right:37%;bottom:18%;animation-delay:1.7s;transform:scale(.72) rotate(-10deg)}.omega-smoke-field i:nth-child(3){right:26%;bottom:28%;animation-delay:3.2s;transform:scale(.55) rotate(13deg)}.omega-smoke-field i:nth-child(4){right:52%;bottom:35%;animation-delay:4.5s;transform:scale(.42) rotate(-18deg)}
+@keyframes omegaSmoke{0%{opacity:0;transform:translate3d(0,12px,0) scale(.65) rotate(15deg)}18%{opacity:.34}55%{opacity:.22}100%{opacity:0;transform:translate3d(-28px,-120px,0) scale(1.4) rotate(65deg)}}
+
+/* Tiny floating ember at the cigarette tip. */
+.omega-ember{position:absolute;right:19.4%;top:31.5%;width:8px;height:8px;border-radius:50%;background:#ff7cde;box-shadow:0 0 5px #ff7cde,0 0 14px #ff28e7;animation:omegaEmber 1.35s ease-in-out infinite alternate;z-index:30}
+@keyframes omegaEmber{from{transform:scale(.75);opacity:.58}to{transform:scale(1.35);opacity:1}}
+
+/* Blinking mask; calibrated as a subtle eyelid shadow rather than a new face. */
+.omega-face-fx{position:absolute;right:28.8%;top:28.2%;width:19%;height:10%;z-index:26;pointer-events:none;opacity:0}
+.omega-face-fx:before,.omega-face-fx:after{content:"";position:absolute;top:44%;width:35%;height:7%;border-radius:50%;background:rgba(12,2,24,.42);filter:blur(1px);transform:scaleY(.25)}
+.omega-face-fx:before{left:8%}.omega-face-fx:after{right:8%}
+body.omega-blink .omega-face-fx{opacity:.82}.omega-face-fx:before,.omega-face-fx:after{transition:transform .07s ease-out}.omega-face-fx:before,.omega-face-fx:after{animation:omegaLidIdle 4s ease-in-out infinite}
+@keyframes omegaLidIdle{0%,92%,100%{transform:scaleY(.25)}95%,97%{transform:scaleY(4.8)}}
+
+/* Eye/gaze helper dots are extremely subtle so they blend into the artwork. */
+.omega-gaze{position:absolute;right:28.7%;top:29.25%;width:20%;height:8%;z-index:27;pointer-events:none}
+.omega-gaze i{position:absolute;top:47%;width:5px;height:5px;border-radius:50%;background:rgba(0,245,255,.48);box-shadow:0 0 5px rgba(0,245,255,.45);transform:translate3d(calc(var(--lookx,0) * 6px),calc(var(--looky,0) * 3px),0);transition:transform .08s linear;opacity:.38}
+.omega-gaze i:first-child{left:20%}.omega-gaze i:last-child{right:20%}
+
+/* Automatic life response to hover/click. */
+body.omega-attentive #omega-actor{filter:drop-shadow(0 0 20px rgba(255,40,231,.56))}
+body.omega-attentive #omega-actor .omega-puppet-motion{animation-duration:2.2s}
+body.omega-juegos-focus #omega-actor{filter:drop-shadow(0 0 26px rgba(255,40,231,.80))}
+body.omega-playing #omega-actor{animation:omegaTurnLive 1.45s cubic-bezier(.2,.86,.22,1)}
+@keyframes omegaTurnLive{0%{transform:translate3d(var(--ax,0),var(--ay,0),0) rotate(0) scale(1)}25%{transform:translate3d(calc(var(--ax,0) - 12px),calc(var(--ay,0) - 3px),0) rotate(-2.5deg) scale(1.015)}52%{transform:translate3d(calc(var(--ax,0) + 17px),calc(var(--ay,0) - 6px),0) rotate(3deg) scale(1.025)}78%{transform:translate3d(calc(var(--ax,0) + 7px),calc(var(--ay,0) - 2px),0) rotate(1.2deg) scale(1.012)}100%{transform:translate3d(var(--ax,0),var(--ay,0),0) rotate(0) scale(1)}}
+
+/* Hide the legacy small animation gallery if an old index.html still contains it. */
+body.dashboard .omega-gallery{display:none!important}
+
+@media(max-width:1100px){#omega-actor{width:min(58vw,620px)!important;height:min(68vh,620px)!important;right:-3vw!important}.omega-face-fx,.omega-gaze,.omega-ember{display:none!important}}
+@media(max-width:700px){#omega-actor{width:360px!important;height:420px!important;right:-75px!important;opacity:.68}.omega-smoke-field{display:none!important}}
+@media(prefers-reduced-motion:reduce){#omega-actor .omega-puppet-motion,#omega-actor:before,.omega-smoke-field i,.omega-ember,.omega-face-fx:before,.omega-face-fx:after,body.omega-playing #omega-actor{animation:none!important}}
