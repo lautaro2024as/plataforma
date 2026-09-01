@@ -1,116 +1,23 @@
 {% extends "admin/base.html" %}
 {% load static %}
 
-{% block title %}{{ title }} | Admin Cyberpunk{% endblock %}
+{% block title %}{{ title }} | SISTEMA_CENTRAL :: OMEGA{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
-<style>
-    /* 1. EL FONDO ANIMADO WAIFU CYBERPUNK */
-    body {
-        /* Aquí va la URL de tu imagen/gif. Cambia el enlace por el archivo que quieras usar */
-        background-image: url('https://i.pinimg.com/originals/a6/5c/58/a65c589781cf131fc2da35a8bc134d19.gif'); 
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        color: #0ff; /* Texto color cyan neón */
-        font-family: 'Courier New', Courier, monospace; /* Letra estilo terminal */
-    }
-
-    /* Oscurecer un poco el fondo para que se lea el texto */
-    body::before {
-        content: "";
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(10, 10, 20, 0.75); /* Filtro oscuro */
-        z-index: -1;
-    }
-
-    /* 2. ESTILOS DE LA BARRA SUPERIOR (HEADER) */
-    #header {
-        background: rgba(0, 0, 0, 0.8) !important;
-        border-bottom: 2px solid #f0f; /* Borde fucsia neón */
-        box-shadow: 0 0 15px #f0f;
-    }
-    #header h1 {
-        color: #0ff !important; /* Cyan */
-        text-shadow: 0 0 10px #0ff;
-    }
-    #header a {
-        color: #f0f !important;
-    }
-
-    /* 3. LOS CUADROS Y MÓDULOS DEL MENÚ */
-    .module, #login-form {
-        background: rgba(15, 15, 30, 0.85) !important;
-        border: 1px solid #0ff !important;
-        border-radius: 10px;
-        box-shadow: 0 0 10px #0ff, inset 0 0 10px rgba(0, 255, 255, 0.2);
-        backdrop-filter: blur(5px);
-        transition: all 0.3s ease; /* Transición suave para el hover */
-    }
-
-    .module caption, .module h2 {
-        background: rgba(0, 255, 255, 0.2) !important;
-        color: #f0f !important;
-        text-shadow: 0 0 5px #f0f;
-        border-bottom: 1px solid #0ff;
-    }
-
-    /* 4. EFECTOS AL PASAR EL MOUSE (HOVER) */
-    .module table tr {
-        transition: transform 0.2s, background 0.2s;
-    }
-    
-    .module table tr:hover {
-        background: rgba(255, 0, 255, 0.2) !important; /* Fondo fucsia transparente al pasar el mouse */
-        transform: scale(1.02); /* El efecto de agrandarse un poco */
-        box-shadow: 0 0 10px #f0f;
-    }
-
-    /* 5. ICONOS Y ENLACES (ESTILO FÁCIL PARA ADMINISTRADORES) */
-    .module table td a {
-        color: #0ff !important;
-        font-weight: bold;
-        text-decoration: none;
-        display: inline-block;
-        padding-left: 25px;
-        position: relative;
-    }
-
-    /* Agregamos un "icono gamer" falso usando un emoji o un caracter de terminal a los enlaces */
-    .module table td a::before {
-        content: "▶"; /* Icono de play/juego */
-        position: absolute;
-        left: 0;
-        color: #f0f;
-        text-shadow: 0 0 5px #f0f;
-    }
-
-    .module table td a:hover {
-        color: #fff !important;
-        text-shadow: 0 0 10px #fff;
-    }
-
-    /* 6. BOTONES (EL BOTÓN DE LOG IN) */
-    input[type=submit], .button {
-        background: transparent !important;
-        border: 2px solid #f0f !important;
-        color: #f0f !important;
-        text-transform: uppercase;
-        font-weight: bold;
-        box-shadow: 0 0 5px #f0f;
-        transition: all 0.3s;
-    }
-    input[type=submit]:hover, .button:hover {
-        background: #f0f !important;
-        color: #000 !important;
-        box-shadow: 0 0 20px #f0f;
-        transform: scale(1.1);
-    }
-</style>
+<link rel="stylesheet" href="{% static 'admin/omega/omega_admin.css' %}">
 {% endblock %}
 
 {% block branding %}
-<h1 id="site-name"><a href="{% url 'admin:index' %}">⚡ SISTEMA_CENTRAL :: OMEGA ⚡</a></h1>
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">⚡ SISTEMA_CENTRAL :: OMEGA ⚡</a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script defer src="{% static 'admin/omega/omega_admin.js' %}"></script>
 {% endblock %}
