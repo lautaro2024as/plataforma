@@ -6,7 +6,7 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'admin/omega/omega_admin.css' %}">
-<link rel="stylesheet" href="{% static 'admin/omega/omega_scene.css' %}">
+<link rel="stylesheet' href="{% static 'admin/omega/omega_scene.css' %}">
 {% endblock %}
 
 {% block branding %}
@@ -19,6 +19,7 @@
 {{ block.super }}
 {% if request.resolver_match.url_name == 'index' %}
 <link rel="stylesheet" href="{% static 'admin/omega/omega_v2.css' %}">
+<link rel="stylesheet" href="{% static 'admin/omega/omega_auto.css' %}">
 {% endif %}
 <script defer src="{% static 'admin/omega/omega_admin.js' %}"></script>
 {% endblock %}
