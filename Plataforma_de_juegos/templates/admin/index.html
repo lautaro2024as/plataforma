@@ -1,0 +1,87 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}OMEGA CONTROL DECK | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="omega-dashboard">
+  <section class="omega-maincol">
+    <div class="omega-card">
+      <div class="omega-card-head"><span>SISTEMA CENTRAL // OMEGA</span><span class="omega-tag">ONLINE</span></div>
+      <div class="omega-stat-grid">
+        <div class="omega-stat"><small>JUEGOS</small><b>LIVE</b><span>Gestionar catálogo</span></div>
+        <div class="omega-stat"><small>MALWARE</small><b>SCAN</b><span>Revisar alertas</span></div>
+        <div class="omega-stat"><small>LICENCIAS</small><b>SYNC</b><span>Auditoría de compras</span></div>
+        <div class="omega-stat"><small>USUARIOS</small><b>AUTH</b><span>Perfiles y permisos</span></div>
+      </div>
+    </div>
+
+    <div class="omega-card">
+      <div class="omega-card-head"><span>JUEGOS RECIENTES</span><a href="{% url 'admin:administrador_juego_changelist' %}" class="omega-tag">VER TODOS →</a></div>
+      <div class="omega-list">
+        <a href="{% url 'admin:administrador_juego_changelist' %}"><span>🎮 Catálogo de juegos</span><span class="omega-tag">ADMIN</span></a>
+        <a href="{% url 'admin:administrador_juego_add' %}"><span>✦ Agregar nuevo juego</span><span class="omega-tag">ADD</span></a>
+        <a href="{% url 'admin:administrador_licenciacompra_changelist' %}"><span>▣ Licencias y compras</span><span class="omega-tag">DATA</span></a>
+      </div>
+      <div class="omega-chart" aria-hidden="true"></div>
+    </div>
+
+    <div class="omega-card">
+      <div class="omega-card-head"><span>ANIMACIONES DE LA MUJER</span><span class="omega-tag">INTERACTIVA</span></div>
+      <div class="omega-gallery">
+        <button type="button" class="omega-pose is-active" data-mode="idle"><div class="mini"></div>IDLE</button>
+        <button type="button" class="omega-pose" data-mode="smile"><div class="mini"></div>SONRISA</button>
+        <button type="button" class="omega-pose" data-mode="look"><div class="mini"></div>MIRADA</button>
+        <button type="button" class="omega-pose" data-mode="smoke"><div class="mini"></div>FUMANDO</button>
+        <button type="button" class="omega-pose" data-mode="turn"><div class="mini"></div>GIRO</button>
+      </div>
+      <div class="omega-search"><input id="omega-search" type="search" placeholder="Buscar en el panel…"><button type="button" class="omega-btn" id="omega-focus-search">CTRL K</button></div>
+    </div>
+  </section>
+
+  <aside class="omega-sidecol">
+    <div class="omega-card">
+      <div class="omega-card-head"><span>ACCIONES RÁPIDAS</span><span>⚡</span></div>
+      <div class="omega-actions">
+        <a class="omega-btn" href="{% url 'admin:administrador_juego_add' %}"><span class="ico">🎮</span><span>Agregar juego</span><span>→</span></a>
+        <a class="omega-btn" href="{% url 'admin:administrador_perfilusuario_add' %}"><span class="ico">◉</span><span>Nuevo usuario</span><span>→</span></a>
+        <a class="omega-btn" href="{% url 'admin:administrador_alertamalware_changelist' %}"><span class="ico">⚠</span><span>Ver malware</span><span>→</span></a>
+        <a class="omega-btn" href="{% url 'admin:administrador_licenciacompra_changelist' %}"><span class="ico">▣</span><span>Licencias</span><span>→</span></a>
+      </div>
+    </div>
+
+    <div class="omega-card">
+      <div class="omega-card-head"><span>ESTADO DEL SISTEMA</span><span class="omega-on">●</span></div>
+      <div class="omega-status">
+        <div class="omega-status-row"><span>Servidor</span><strong class="omega-on">ONLINE</strong></div>
+        <div class="omega-status-row"><span>Base de datos</span><strong class="omega-on">CONECTADA</strong></div>
+        <div class="omega-status-row"><span>Admin</span><strong>OMEGA</strong></div>
+        <div class="omega-status-row"><span>Usuario</span><strong>{{ user.username }}</strong></div>
+        <div class="omega-status-row"><span>Latencia</span><strong id="omega-ping">12 ms</strong></div>
+        <div class="omega-meter"><i style="--w:72%"></i></div>
+      </div>
+    </div>
+
+    <div class="omega-card">
+      <div class="omega-card-head"><span>REGISTRO DE ACTIVIDAD</span></div>
+      <div class="omega-log">
+        <div class="omega-logline"><span class="time">NOW</span><span>Sesión del administrador activa</span><span>✓</span></div>
+        <div class="omega-logline"><span class="time">LIVE</span><span>Django Admin cargado</span><span>✓</span></div>
+        <div class="omega-logline"><span class="time">DB</span><span>Conexión MySQL estable</span><span>✓</span></div>
+        <div class="omega-logline"><span class="time">OMEGA</span><span>Motor visual iniciado</span><span>✓</span></div>
+      </div>
+    </div>
+
+    <div class="omega-card">
+      <div class="omega-card-head"><span>MODELOS DISPONIBLES</span></div>
+      <div class="omega-list">
+        {% for app in app_list %}
+          {% for model in app.models %}
+            <a href="{{ model.admin_url }}"><span>{{ model.name }}</span><span class="omega-tag">OPEN</span></a>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}
