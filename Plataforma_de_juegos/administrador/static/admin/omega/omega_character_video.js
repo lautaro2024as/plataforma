@@ -1,59 +1,14 @@
 (()=>{
   const BASE="/static/admin/omega/";
-  let video;
-
-  function ensureVideo(){
-    const stage=document.getElementById("omega-stage");
-    if(!stage) return false;
-    if(document.getElementById("omega-live-video")) return true;
-
-    stage.innerHTML="";
-    video=document.createElement("video");
-    video.id="omega-live-video";
-    video.autoplay=true;
-    video.loop=true;
-    video.muted=true;
-    video.playsInline=true;
-    video.preload="auto";
-    video.setAttribute("aria-hidden","true");
-
-    const source=document.createElement("source");
-    source.src=BASE+"omega_character_loop.mp4";
-    source.type="video/mp4";
-    video.appendChild(source);
-
-    const tint=document.createElement("div");
-    tint.className="omega-video-tint";
-    const vignette=document.createElement("div");
-    vignette.className="omega-video-vignette";
-
-    stage.appendChild(video);
-    stage.appendChild(tint);
-    stage.appendChild(vignette);
-    video.play().catch(()=>{});
-    return true;
-  }
-
-  function bind(){
-    const els=[...document.querySelectorAll(".omega-btn,.omega-card,.module,.dashboard-module,.button,input[type='submit'],input[type='button'],#nav-sidebar a")];
-    els.forEach(el=>{
-      el.addEventListener("mouseenter",()=>{
-        document.body.classList.add("omega-reacting","omega-attentive");
-        const text=((el.textContent||"")+" "+(el.getAttribute("href")||"")+" "+(el.getAttribute("aria-label")||"")).toLowerCase();
-        if(text.includes("juego")) document.body.classList.add("omega-juegos-focus");
-      });
-      el.addEventListener("mouseleave",()=>setTimeout(()=>document.body.classList.remove("omega-reacting","omega-attentive","omega-juegos-focus"),120));
-      el.addEventListener("click",()=>{
-        const text=((el.textContent||"")+" "+(el.getAttribute("href")||"")).toLowerCase();
-        if(text.includes("juego")){
-          document.body.classList.add("omega-playing");
-          setTimeout(()=>document.body.classList.remove("omega-playing"),1200);
-        }
-      },{capture:true});
-    });
-  }
-
-  function start(){if(ensureVideo()) bind()}
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",start,{once:true});
-  else start();
+  let video=null,canvas=null,ctx=null,raf=0,lastW=0,lastH=0;
+  function createCanvas(stage){canvas=document.createElement("canvas");canvas.id="omega-live-canvas";canvas.setAttribute("aria-hidden","true");canvas.width=960;canvas.height=540;ctx=canvas.getContext("2d",{alpha:true,willReadFrequently:true});stage.appendChild(canvas)}
+  function resizeCanvas(){if(!canvas||!ctx)return;const w=Math.max(640,Math.min(1280,Math.round(window.innerWidth*.75))),h=Math.round(w*9/16);if(w===lastW&&h===lastH)return;lastW=w;lastH=h;canvas.width=w;canvas.height=h}
+  function removeMagenta(data){for(let i=0;i<data.length;i+=4){const r=data[i],g=data[i+1],b=data[i+2],magenta=Math.min(r,b)-g,vivid=r+b-g*1.65,hot=r>180&&b>145&&g<125&&magenta>90&&vivid>255,near=r>135&&b>120&&g<105&&magenta>65&&vivid>195;if(hot)data[i+3]=0;else if(near){const edge=Math.max(0,Math.min(1,(magenta-65)/60));data[i+3]=Math.round(255*(1-edge*.92))}}}
+  function render(){if(!video||!canvas||!ctx)return;if(video.readyState>=2&&!video.paused&&!video.ended){resizeCanvas();const cw=canvas.width,ch=canvas.height,vw=video.videoWidth||cw,vh=video.videoHeight||ch,scale=Math.max(cw/vw,ch/vh),dw=vw*scale,dh=vh*scale,dx=(cw-dw)/2,dy=(ch-dh)/2;ctx.clearRect(0,0,cw,ch);ctx.drawImage(video,dx,dy,dw,dh);const frame=ctx.getImageData(0,0,cw,ch);removeMagenta(frame.data);ctx.putImageData(frame,0,0)}raf=requestAnimationFrame(render)}
+  function ensureVideo(){const stage=document.getElementById("omega-stage");if(!stage)return false;if(document.getElementById("omega-live-canvas"))return true;stage.innerHTML="";video=document.createElement("video");video.id="omega-source-video";video.autoplay=true;video.loop=true;video.muted=true;video.playsInline=true;video.preload="auto";video.setAttribute("aria-hidden","true");const source=document.createElement("source");source.src=BASE+"omega_character_loop.mp4";source.type="video/mp4";video.appendChild(source);createCanvas(stage);const tint=document.createElement("div");tint.className="omega-video-tint";const vignette=document.createElement("div");vignette.className="omega-video-vignette";stage.appendChild(tint);stage.appendChild(vignette);video.addEventListener("loadedmetadata",resizeCanvas,{once:true});video.addEventListener("play",()=>{cancelAnimationFrame(raf);render()});video.addEventListener("error",()=>document.body.classList.add("omega-video-error"));stage.appendChild(video);video.style.display="none";video.play().catch(()=>{});requestAnimationFrame(render);return true}
+  function addRealisticSmoke(stage){if(stage.querySelector(".omega-smoke-real"))return;const smoke=document.createElement("div");smoke.className="omega-smoke-real";smoke.setAttribute("aria-hidden","true");smoke.innerHTML='<span></span><span></span><span></span>';stage.appendChild(smoke)}
+  function bind(){const els=[...document.querySelectorAll(".omega-btn,.omega-card,.module,.dashboard-module,.button,input[type='submit'],input[type='button'],#nav-sidebar a")];els.forEach(el=>{el.addEventListener("mouseenter",()=>{document.body.classList.add("omega-reacting","omega-attentive");const text=((el.textContent||"")+" "+(el.getAttribute("href")||"")+" "+(el.getAttribute("aria-label")||"")).toLowerCase();if(text.includes("juego"))document.body.classList.add("omega-juegos-focus")});el.addEventListener("mouseleave",()=>setTimeout(()=>document.body.classList.remove("omega-reacting","omega-attentive","omega-juegos-focus"),120));el.addEventListener("click",()=>{const text=((el.textContent||"")+" "+(el.getAttribute("href")||"")).toLowerCase();if(text.includes("juego")){document.body.classList.add("omega-playing");setTimeout(()=>document.body.classList.remove("omega-playing"),1200)}},{capture:true})})}
+  function start(){const stage=document.getElementById("omega-stage");if(!stage)return;if(ensureVideo()){addRealisticSmoke(stage);bind()}}
+  window.addEventListener("resize",resizeCanvas,{passive:true});
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
 })();
