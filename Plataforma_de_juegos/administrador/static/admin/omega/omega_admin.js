@@ -1,10 +1,18 @@
 (()=>{
   const BASE="/static/admin/omega/";
   const qsa=s=>[...document.querySelectorAll(s)];
-  let actor,rain,hoverTimer,modeTimer,hovering=false,manualMode=false;
+  let actor,rain,hoverTimer,blinkTimer,smokeTimer,smileTimer,ambientTimer;
 
-  function layer(id){const e=document.createElement('div');e.id=id;document.body.prepend(e);return e}
-  function build(){layer('omega-stage');layer('omega-grid');rain=layer('omega-rain');layer('omega-light');layer('omega-vignette');actor=layer('omega-actor')}
+  const layer=id=>{const e=document.createElement('div');e.id=id;document.body.prepend(e);return e};
+
+  function build(){
+    layer('omega-stage');
+    layer('omega-grid');
+    rain=layer('omega-rain');
+    layer('omega-light');
+    layer('omega-vignette');
+    actor=layer('omega-actor');
+  }
 
   async function character(){
     try{
@@ -29,9 +37,9 @@
       d.style.opacity=(.10+Math.random()*.52).toFixed(2);
       d.style.setProperty('--rs',(0.42+Math.random()*1.15).toFixed(2)+'s');
       d.style.animationDelay=Math.random()*3+'s';
-      f.appendChild(d)
+      f.appendChild(d);
     }
-    rain.appendChild(f)
+    rain.appendChild(f);
   }
 
   function mouse(e){
@@ -42,64 +50,66 @@
     document.documentElement.style.setProperty('--ax',x*24+'px');
     document.documentElement.style.setProperty('--ay',y*12+'px');
     document.documentElement.style.setProperty('--at',x*4.5+'deg');
+    document.documentElement.style.setProperty('--lookx',x.toFixed(3));
+    document.documentElement.style.setProperty('--looky',y.toFixed(3));
   }
 
   function react(on){document.body.classList.toggle('omega-reacting',on)}
 
-  function clearCharacterModes(){
-    document.body.classList.remove('omega-mode-look','omega-mode-smile','omega-mode-smoke');
+  function blink(){
+    if(document.hidden)return;
+    document.body.classList.add('omega-blink');
+    setTimeout(()=>document.body.classList.remove('omega-blink'),125);
   }
 
-  function manualMode(mode){
-    clearTimeout(modeTimer);
-    manualMode=true;
-    clearCharacterModes();
-    document.body.classList.add('omega-mode-'+mode);
-    qsa('.omega-pose').forEach(x=>x.classList.toggle('is-active',x.dataset.mode===mode));
-    react(mode!=='idle');
-    if(mode==='smoke')document.body.classList.add('omega-attentive');
-    else document.body.classList.remove('omega-attentive');
-    if(mode==='idle')manualMode=false;
+  function scheduleBlink(){
+    clearTimeout(blinkTimer);
+    blinkTimer=setTimeout(()=>{
+      blink();
+      /* Natural second blink sometimes follows the first. */
+      if(Math.random()<0.22)setTimeout(blink,210);
+      scheduleBlink();
+    },2800+Math.random()*4800);
   }
 
-  function hoverCharacter(isJuegos){
-    if(manualMode||document.body.classList.contains('omega-playing'))return;
-    clearTimeout(modeTimer);
-    document.body.classList.add('omega-attentive','omega-mode-look','omega-mode-smile','omega-mode-smoke');
-    react(true);
-    /* Juegos provoca una reacción más fuerte, pero sigue siendo 100% por interacción. */
-    if(isJuegos)document.body.classList.add('omega-juegos-focus');
+  function smokePulse(){
+    if(document.hidden)return;
+    document.body.classList.add('omega-smoke-pulse');
+    setTimeout(()=>document.body.classList.remove('omega-smoke-pulse'),700);
   }
 
-  function leaveCharacter(){
-    clearTimeout(hoverTimer);
-    hoverTimer=setTimeout(()=>{
-      if(!manualMode&&!document.body.classList.contains('omega-playing')){
-        clearCharacterModes();
-        document.body.classList.remove('omega-attentive','omega-juegos-focus');
-        react(false);
+  function scheduleSmoke(){
+    clearTimeout(smokeTimer);
+    smokeTimer=setTimeout(()=>{
+      smokePulse();
+      scheduleSmoke();
+    },3200+Math.random()*4200);
+  }
+
+  function ambientSmile(){
+    clearTimeout(smileTimer);
+    ambientTimer=setTimeout(()=>{
+      if(!document.hidden){
+        document.body.classList.add('omega-smile');
+        setTimeout(()=>document.body.classList.remove('omega-smile'),1000);
       }
-    },120);
+      ambientSmile();
+    },9000+Math.random()*7000);
   }
 
   function playJuegos(){
     if(document.body.classList.contains('omega-playing'))return;
-    clearTimeout(modeTimer);
-    manualMode=false;
-    clearCharacterModes();
-    qsa('.omega-pose').forEach(x=>x.classList.remove('is-active'));
-    document.body.classList.add('omega-playing','omega-mode-smile','omega-attentive','omega-juegos-focus');
+    clearTimeout(hoverTimer);
+    document.body.classList.add('omega-playing','omega-attentive','omega-juegos-focus');
     react(true);
-    modeTimer=setTimeout(()=>{
-      document.body.classList.remove('omega-playing');
-      if(!hovering){
-        clearCharacterModes();
+    setTimeout(()=>document.body.classList.add('omega-smile'),430);
+    setTimeout(()=>{
+      document.body.classList.remove('omega-playing','omega-smile');
+      if(!document.body.matches(':hover')){
         document.body.classList.remove('omega-attentive','omega-juegos-focus');
         react(false);
-      }else{
-        hoverCharacter(true);
       }
-    },1000)
+    },1900);
   }
 
   function bind(){
@@ -108,19 +118,20 @@
     const interactive=qsa('.omega-btn,.omega-card,.module,.dashboard-module,.button,input[type="submit"],input[type="button"],#nav-sidebar a');
     interactive.forEach(el=>{
       el.addEventListener('mouseenter',()=>{
-        hovering=true;
         clearTimeout(hoverTimer);
+        react(true);
+        document.body.classList.add('omega-attentive');
         const text=((el.textContent||'')+' '+(el.getAttribute('href')||'')+' '+(el.getAttribute('aria-label')||'')).toLowerCase();
-        hoverCharacter(text.includes('juego')||text.includes('juegos'));
+        if(text.includes('juego')||text.includes('juegos'))document.body.classList.add('omega-juegos-focus');
       });
       el.addEventListener('mouseleave',()=>{
-        hovering=false;
-        leaveCharacter();
+        hoverTimer=setTimeout(()=>{
+          if(!document.body.classList.contains('omega-playing')){
+            document.body.classList.remove('omega-attentive','omega-juegos-focus');
+            react(false);
+          }
+        },120);
       });
-    });
-
-    qsa('.omega-pose').forEach(pose=>{
-      pose.addEventListener('click',()=>manualMode(pose.dataset.mode||'idle'));
     });
 
     qsa('a,button,input[type="submit"],input[type="button"]').forEach(el=>{
@@ -128,9 +139,22 @@
       if(t.includes('juego')||t.includes('juegos'))el.addEventListener('click',playJuegos,{capture:true});
     });
 
-    /* El personaje NO se reproduce solo. Toda pose se activa por hover o click. */
+    document.addEventListener('visibilitychange',()=>{
+      if(!document.hidden){scheduleBlink();scheduleSmoke();}
+    });
   }
 
-  async function start(){build();await character();drops();bind()}
+  async function start(){
+    build();
+    await character();
+    drops();
+    bind();
+    /* The character is alive continuously: breathing + hair sway via CSS,
+       while JS schedules natural blinks, smoke pulses and rare smiles. */
+    scheduleBlink();
+    scheduleSmoke();
+    ambientSmile();
+  }
+
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
