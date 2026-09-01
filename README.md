@@ -1,0 +1,2 @@
+# plataforma
+plataforma de juegos
