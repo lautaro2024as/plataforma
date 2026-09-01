@@ -1,12 +1,48 @@
-/* OMEGA LIVE CHARACTER VIDEO LAYER */
-#omega-stage{z-index:0!important;background:#02030a!important;overflow:hidden!important;transform:none!important}
-#omega-live-video{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;pointer-events:none!important;filter:saturate(1.10) contrast(1.04) brightness(.78);transform:scale(1.018);transform-origin:50% 52%;animation:omegaVideoBreath 4.2s ease-in-out infinite}
-@keyframes omegaVideoBreath{0%,100%{transform:scale(1.018) translate3d(0,0,0)}50%{transform:scale(1.025) translate3d(0,-2px,0)}}
-#omega-stage .omega-video-tint{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(1,2,9,.67),rgba(2,2,12,.27) 45%,rgba(2,2,12,.10) 68%,rgba(2,2,12,.42)),radial-gradient(circle at 42% 30%,rgba(255,35,220,.08),transparent 34%),radial-gradient(circle at 76% 68%,rgba(0,246,255,.06),transparent 30%)}
-#omega-stage .omega-video-vignette{position:absolute;inset:0;box-shadow:inset 0 0 180px rgba(0,0,12,.62);pointer-events:none}
-#omega-actor{display:none!important}
-#omega-character-life,#omega-blink,#omega-blink2,#omega-hair-wash,#omega-smoke-system{display:none!important}
-body.omega-reacting #omega-live-video{filter:saturate(1.24) contrast(1.06) brightness(.86);animation-duration:2.2s}
-body.omega-playing #omega-live-video{animation:omegaVideoTurn 1.1s cubic-bezier(.2,.85,.35,1);filter:saturate(1.30) contrast(1.08) brightness(.90)}
-@keyframes omegaVideoTurn{0%{transform:scale(1.018) translate3d(0,0,0)}32%{transform:scale(1.04) translate3d(-9px,-3px,0) rotate(-.6deg)}63%{transform:scale(1.045) translate3d(10px,-2px,0) rotate(.7deg)}100%{transform:scale(1.018) translate3d(0,0,0) rotate(0)}}
-@media(max-width:700px){#omega-live-video{object-position:57% center;transform:scale(1.05)}}
+/* OMEGA LIVE CHARACTER / COMPATIBILITY LAYER */
+/* The current character is rendered by omega_admin.js. Keep the legacy video layer disabled so it does not duplicate the character. */
+#omega-stage{z-index:0!important;overflow:hidden!important}
+#omega-live-video{display:none!important}
+.omega-video-tint,.omega-video-vignette{display:none!important}
+
+/* Keep the animated character visible above the dashboard content, while the header remains above it. */
+#omega-actor{
+  display:flex!important;
+  position:fixed!important;
+  inset:auto!important;
+  right:1.25vw!important;
+  bottom:1.8vh!important;
+  width:min(44vw,690px)!important;
+  height:min(56vw,745px)!important;
+  z-index:35!important;
+  align-items:flex-end!important;
+  justify-content:flex-end!important;
+  pointer-events:none!important;
+  visibility:visible!important;
+  opacity:1!important;
+  mix-blend-mode:normal!important;
+  overflow:visible!important;
+}
+
+#omega-actor svg{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  width:100%!important;
+  height:100%!important;
+  overflow:visible!important;
+}
+
+#header{z-index:40!important}
+#omega-rain{z-index:38!important}
+#omega-hud-fx{z-index:39!important}
+
+@media(max-width:1100px){
+  #omega-actor{width:420px!important;height:520px!important}
+}
+@media(max-width:700px){
+  #omega-actor{width:320px!important;height:390px!important;right:-10px!important;bottom:1vh!important;opacity:.82!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  #omega-actor svg{animation:none!important}
+}
