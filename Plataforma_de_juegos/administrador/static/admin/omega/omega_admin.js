@@ -1,7 +1,7 @@
 (()=>{
   const BASE="/static/admin/omega/";
   const qsa=s=>[...document.querySelectorAll(s)];
-  let actor,rain,hoverTimer,modeTimer;
+  let actor,rain,hoverTimer,modeTimer,hovering=false,manualMode=false;
 
   function layer(id){const e=document.createElement('div');e.id=id;document.body.prepend(e);return e}
   function build(){layer('omega-stage');layer('omega-grid');rain=layer('omega-rain');layer('omega-light');layer('omega-vignette');actor=layer('omega-actor')}
@@ -46,33 +46,59 @@
 
   function react(on){document.body.classList.toggle('omega-reacting',on)}
 
-  function clearMode(){
+  function clearCharacterModes(){
     document.body.classList.remove('omega-mode-look','omega-mode-smile','omega-mode-smoke');
-    qsa('.omega-pose').forEach(x=>x.classList.remove('is-active'));
   }
 
-  function setMode(mode){
+  function manualMode(mode){
     clearTimeout(modeTimer);
-    clearMode();
+    manualMode=true;
+    clearCharacterModes();
     document.body.classList.add('omega-mode-'+mode);
-    const pose=document.querySelector(`.omega-pose[data-mode="${mode}"]`);
-    if(pose)pose.classList.add('is-active');
+    qsa('.omega-pose').forEach(x=>x.classList.toggle('is-active',x.dataset.mode===mode));
+    react(mode!=='idle');
+    if(mode==='smoke')document.body.classList.add('omega-attentive');
+    else document.body.classList.remove('omega-attentive');
+    if(mode==='idle')manualMode=false;
+  }
+
+  function hoverCharacter(isJuegos){
+    if(manualMode||document.body.classList.contains('omega-playing'))return;
+    clearTimeout(modeTimer);
+    document.body.classList.add('omega-attentive','omega-mode-look','omega-mode-smile','omega-mode-smoke');
     react(true);
-    if(mode==='smoke')modeTimer=setTimeout(()=>{clearMode();react(false)},3600);
-    else if(mode==='smile')modeTimer=setTimeout(()=>{clearMode();react(false)},2200);
-    else if(mode==='look')modeTimer=setTimeout(()=>{clearMode();react(false)},2600);
-    else if(mode==='idle')react(false);
+    /* Juegos provoca una reacción más fuerte, pero sigue siendo 100% por interacción. */
+    if(isJuegos)document.body.classList.add('omega-juegos-focus');
+  }
+
+  function leaveCharacter(){
+    clearTimeout(hoverTimer);
+    hoverTimer=setTimeout(()=>{
+      if(!manualMode&&!document.body.classList.contains('omega-playing')){
+        clearCharacterModes();
+        document.body.classList.remove('omega-attentive','omega-juegos-focus');
+        react(false);
+      }
+    },120);
   }
 
   function playJuegos(){
     if(document.body.classList.contains('omega-playing'))return;
     clearTimeout(modeTimer);
-    clearMode();
-    document.body.classList.add('omega-playing');
+    manualMode=false;
+    clearCharacterModes();
+    qsa('.omega-pose').forEach(x=>x.classList.remove('is-active'));
+    document.body.classList.add('omega-playing','omega-mode-smile','omega-attentive','omega-juegos-focus');
     react(true);
     modeTimer=setTimeout(()=>{
       document.body.classList.remove('omega-playing');
-      react(false);
+      if(!hovering){
+        clearCharacterModes();
+        document.body.classList.remove('omega-attentive','omega-juegos-focus');
+        react(false);
+      }else{
+        hoverCharacter(true);
+      }
     },1000)
   }
 
@@ -82,20 +108,19 @@
     const interactive=qsa('.omega-btn,.omega-card,.module,.dashboard-module,.button,input[type="submit"],input[type="button"],#nav-sidebar a');
     interactive.forEach(el=>{
       el.addEventListener('mouseenter',()=>{
+        hovering=true;
         clearTimeout(hoverTimer);
-        react(true);
-        document.body.classList.add('omega-attentive');
+        const text=((el.textContent||'')+' '+(el.getAttribute('href')||'')+' '+(el.getAttribute('aria-label')||'')).toLowerCase();
+        hoverCharacter(text.includes('juego')||text.includes('juegos'));
       });
       el.addEventListener('mouseleave',()=>{
-        hoverTimer=setTimeout(()=>{
-          if(!document.body.classList.contains('omega-playing'))react(false);
-          document.body.classList.remove('omega-attentive');
-        },90)
+        hovering=false;
+        leaveCharacter();
       });
     });
 
     qsa('.omega-pose').forEach(pose=>{
-      pose.addEventListener('click',()=>setMode(pose.dataset.mode||'idle'));
+      pose.addEventListener('click',()=>manualMode(pose.dataset.mode||'idle'));
     });
 
     qsa('a,button,input[type="submit"],input[type="button"]').forEach(el=>{
@@ -103,7 +128,7 @@
       if(t.includes('juego')||t.includes('juegos'))el.addEventListener('click',playJuegos,{capture:true});
     });
 
-    /* No hay reproducción automática de poses ni loop del personaje. */
+    /* El personaje NO se reproduce solo. Toda pose se activa por hover o click. */
   }
 
   async function start(){build();await character();drops();bind()}
