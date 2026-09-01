@@ -66,7 +66,6 @@
     clearTimeout(blinkTimer);
     blinkTimer=setTimeout(()=>{
       blink();
-      /* Natural second blink sometimes follows the first. */
       if(Math.random()<0.22)setTimeout(blink,210);
       scheduleBlink();
     },2800+Math.random()*4800);
@@ -97,7 +96,7 @@
     },9000+Math.random()*7000);
   }
 
-  function playJuegos(){
+  function playJuegos(done){
     if(document.body.classList.contains('omega-playing'))return;
     clearTimeout(hoverTimer);
     document.body.classList.add('omega-playing','omega-attentive','omega-juegos-focus');
@@ -105,11 +104,10 @@
     setTimeout(()=>document.body.classList.add('omega-smile'),430);
     setTimeout(()=>{
       document.body.classList.remove('omega-playing','omega-smile');
-      if(!document.body.matches(':hover')){
-        document.body.classList.remove('omega-attentive','omega-juegos-focus');
-        react(false);
-      }
-    },1900);
+      document.body.classList.remove('omega-attentive','omega-juegos-focus');
+      react(false);
+      if(typeof done==='function')done();
+    },1250);
   }
 
   function bind(){
@@ -136,7 +134,14 @@
 
     qsa('a,button,input[type="submit"],input[type="button"]').forEach(el=>{
       const t=((el.textContent||'')+' '+(el.getAttribute('href')||'')+' '+(el.getAttribute('value')||'')+' '+(el.getAttribute('aria-label')||'')).toLowerCase();
-      if(t.includes('juego')||t.includes('juegos'))el.addEventListener('click',playJuegos,{capture:true});
+      if(t.includes('juego')||t.includes('juegos')){
+        el.addEventListener('click',e=>{
+          const href=el.href;
+          if(!href)return;
+          e.preventDefault();
+          playJuegos(()=>{window.location.href=href;});
+        });
+      }
     });
 
     document.addEventListener('visibilitychange',()=>{
@@ -149,8 +154,6 @@
     await character();
     drops();
     bind();
-    /* The character is alive continuously: breathing + hair sway via CSS,
-       while JS schedules natural blinks, smoke pulses and rare smiles. */
     scheduleBlink();
     scheduleSmoke();
     ambientSmile();
