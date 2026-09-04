@@ -8,170 +8,84 @@ html,body{background:#02030a!important}
 #container,#main,#content,#content-main{margin:0!important;padding:0!important;width:100%!important;max-width:none!important}
 #content{min-height:calc(100vh - 46px)!important}
 .omega-wall-page{min-height:calc(100vh - 46px);box-sizing:border-box;padding:28px 34px 120px;background:radial-gradient(circle at 50% -10%,rgba(255,49,232,.16),transparent 35%),radial-gradient(circle at 10% 25%,rgba(18,231,255,.07),transparent 28%),linear-gradient(180deg,#07030f 0,#02040b 55%,#010207 100%);font-family:Consolas,"Courier New",monospace;color:#eef1ff}
-.omega-wall-shell{max-width:1400px;margin:0 auto}
-.omega-wall-head{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:4px 0 20px;border-bottom:1px solid rgba(255,49,232,.45)}
-.omega-wall-kicker{font-size:12px;color:#12e7ff;letter-spacing:2px;margin-bottom:7px;font-weight:800}
-.omega-wall-head h1{margin:0;font-size:32px;line-height:1.1;letter-spacing:2px;color:#ffd9ff;text-shadow:0 0 16px rgba(255,49,232,.25)}
-.omega-wall-head p{margin:9px 0 0;color:#8e9ab2;font-size:13px;letter-spacing:.6px;line-height:1.5}
-.omega-wall-head .omega-back{white-space:nowrap}
-.omega-wall-actions{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0 12px}
-.omega-wall-btn{appearance:none!important;border:1px solid rgba(18,231,255,.55)!important;background:linear-gradient(180deg,rgba(25,10,46,.98),rgba(6,9,23,.98))!important;color:#fff!important;min-height:48px!important;padding:0 19px!important;border-radius:7px!important;font:800 13px/1 Consolas,"Courier New",monospace!important;letter-spacing:.65px!important;cursor:pointer!important;text-decoration:none!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;transition:.18s ease!important;box-shadow:0 0 0 rgba(18,231,255,0)}
-.omega-wall-btn:hover{border-color:#ff31e8!important;transform:translateY(-1px);box-shadow:0 0 18px rgba(255,49,232,.12)}
-.omega-wall-btn:disabled{opacity:.5!important;cursor:not-allowed!important;transform:none!important}
-.omega-wall-add{font-size:14px!important;min-width:290px!important}
-.omega-wall-refresh{border-color:rgba(255,49,232,.45)!important}
-.omega-wall-status{min-height:22px;margin:8px 0 14px;font-size:13px;font-weight:700;color:#85ffbd;line-height:1.5}
-.omega-upload-input{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
-.omega-dropzone{padding:20px 18px;margin-bottom:22px;border:1px dashed rgba(18,231,255,.28);border-radius:9px;color:#8995ad;font-size:12px;text-align:center;background:linear-gradient(180deg,rgba(5,8,20,.78),rgba(2,4,13,.6));cursor:pointer;transition:.18s ease}
-.omega-dropzone:hover,.omega-dropzone.drag{border-color:#ff31e8;color:#eef1ff;background:rgba(22,6,30,.7);box-shadow:0 0 22px rgba(255,49,232,.08)}
-.omega-dropzone strong{color:#12e7ff}
-.omega-wall-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
-.omega-wall-card{min-width:0;background:linear-gradient(145deg,rgba(16,8,34,.97),rgba(4,8,19,.97));border:1px solid rgba(18,231,255,.25);border-radius:9px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.2);transition:.18s ease}
-.omega-wall-card:hover{border-color:rgba(18,231,255,.55);transform:translateY(-2px)}
-.omega-wall-card.active{border-color:#ff31e8;box-shadow:0 0 28px rgba(255,49,232,.14)}
-.omega-wall-preview{height:165px;position:relative;background:#010207;overflow:hidden;border-bottom:1px solid rgba(18,231,255,.15)}
-.omega-wall-preview video{width:100%;height:100%;display:block;object-fit:cover}
-.omega-wall-preview::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.5))}
-.omega-wall-badge{position:absolute;top:10px;left:10px;z-index:3;padding:6px 9px;border-radius:5px;background:rgba(2,5,15,.88);border:1px solid rgba(18,231,255,.55);color:#12e7ff;font-size:10px;font-weight:800;letter-spacing:.5px}
-.omega-wall-badge.active{color:#85ffbd;border-color:#85ffbd}
-.omega-wall-card-body{padding:15px}
-.omega-wall-card h3{margin:0;font-size:15px;color:#ff69ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.omega-wall-meta{margin:8px 0 13px;color:#8490a7;font-size:11px}
-.omega-wall-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.omega-wall-row .omega-wall-btn{width:100%;min-height:43px!important;padding:0 10px!important;font-size:11px!important}
-.omega-delete{border-color:rgba(255,70,120,.55)!important;background:linear-gradient(180deg,rgba(65,9,29,.95),rgba(33,6,21,.95))!important}
-.omega-wall-empty{grid-column:1/-1;padding:58px 20px;text-align:center;border:1px dashed rgba(18,231,255,.25);border-radius:9px;color:#78859d;font-size:13px;line-height:1.8;background:rgba(2,5,16,.4)}
-.omega-wall-empty b{color:#ff69ef}
-.omega-wall-note{margin-top:20px;padding:13px 16px;border:1px solid rgba(18,231,255,.14);background:rgba(2,5,16,.55);color:#7e8aa1;font-size:11px;line-height:1.65;border-radius:7px}
-.omega-wall-note b{color:#ff69ef}
-@media(max-width:1100px){.omega-wall-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:720px){.omega-wall-page{padding:20px 16px 110px}.omega-wall-head{flex-direction:column;align-items:flex-start}.omega-wall-head h1{font-size:25px}.omega-wall-head .omega-back{width:100%}.omega-wall-grid{grid-template-columns:1fr}.omega-wall-row{grid-template-columns:1fr}.omega-wall-add{width:100%;min-width:0!important}}
+.omega-wall-shell{max-width:1400px;margin:0 auto}.omega-wall-head{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:4px 0 20px;border-bottom:1px solid rgba(255,49,232,.45)}
+.omega-wall-kicker{font-size:13px;color:#12e7ff;letter-spacing:2px;margin-bottom:8px;font-weight:800}.omega-wall-head h1{margin:0;font-size:36px;line-height:1.1;letter-spacing:2px;color:#ffd9ff;text-shadow:0 0 16px rgba(255,49,232,.25)}.omega-wall-head p{margin:10px 0 0;color:#a0a9bc;font-size:14px;letter-spacing:.6px;line-height:1.5}
+.omega-wall-actions{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0 12px}.omega-wall-btn{appearance:none!important;border:1px solid rgba(18,231,255,.62)!important;background:linear-gradient(180deg,rgba(25,10,46,.98),rgba(6,9,23,.98))!important;color:#fff!important;min-height:54px!important;padding:0 23px!important;border-radius:7px!important;font:800 15px/1 Consolas,"Courier New",monospace!important;letter-spacing:.7px!important;cursor:pointer!important;text-decoration:none!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;transition:.18s ease!important}.omega-wall-btn:hover{border-color:#ff31e8!important;box-shadow:0 0 18px rgba(255,49,232,.14)}.omega-wall-btn:disabled{opacity:.5!important;cursor:not-allowed!important}
+.omega-wall-add{min-width:330px;font-size:16px!important}.omega-wall-refresh{border-color:rgba(255,49,232,.5)!important}.omega-upload-input{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;left:-9999px!important}
+.omega-upload-box{border:1px dashed rgba(18,231,255,.42);border-radius:9px;background:rgba(3,7,18,.72);padding:18px;margin:0 0 20px}.omega-upload-box-title{font-size:13px;color:#12e7ff;font-weight:800;letter-spacing:1px}.omega-selected{margin-top:10px;color:#d6dced;font-size:12px;line-height:1.7;min-height:18px}.omega-progress-wrap{display:none;margin-top:12px}.omega-progress-wrap.show{display:block}.omega-progress{height:10px;border:1px solid rgba(18,231,255,.28);border-radius:8px;background:#050913;overflow:hidden}.omega-progress-bar{height:100%;width:0;background:linear-gradient(90deg,#12e7ff,#ff31e8);transition:width .15s linear}.omega-progress-text{margin-top:6px;color:#91a0ba;font-size:11px}
+.omega-wall-status{min-height:25px;margin:8px 0 15px;font-size:14px;font-weight:800;color:#85ffbd;line-height:1.55}.omega-dropzone{padding:19px;margin-bottom:22px;border:1px dashed rgba(18,231,255,.28);border-radius:9px;color:#8e99ae;font-size:13px;text-align:center;background:linear-gradient(180deg,rgba(5,8,20,.78),rgba(2,4,13,.6));cursor:pointer}.omega-dropzone:hover,.omega-dropzone.drag{border-color:#ff31e8;color:#fff;box-shadow:0 0 22px rgba(255,49,232,.08)}.omega-dropzone strong{color:#12e7ff}
+.omega-wall-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.omega-wall-card{min-width:0;background:linear-gradient(145deg,rgba(16,8,34,.97),rgba(4,8,19,.97));border:1px solid rgba(18,231,255,.25);border-radius:9px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.2)}.omega-wall-card.active{border-color:#ff31e8;box-shadow:0 0 28px rgba(255,49,232,.14)}.omega-wall-preview{height:155px;position:relative;background:#010207;overflow:hidden;border-bottom:1px solid rgba(18,231,255,.15)}.omega-wall-preview video{width:100%;height:100%;display:block;object-fit:cover}.omega-wall-badge{position:absolute;top:10px;left:10px;z-index:3;padding:6px 9px;border-radius:5px;background:rgba(2,5,15,.88);border:1px solid rgba(18,231,255,.55);color:#12e7ff;font-size:11px;font-weight:800}.omega-wall-badge.active{color:#85ffbd;border-color:#85ffbd}.omega-wall-card-body{padding:16px}.omega-wall-card h3{margin:0;font-size:17px;color:#ff69ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.omega-wall-meta{margin:8px 0 13px;color:#96a1b8;font-size:12px}.omega-wall-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.omega-wall-row .omega-wall-btn{width:100%;min-height:46px!important;padding:0 10px!important;font-size:13px!important}.omega-delete{border-color:rgba(255,70,120,.55)!important;background:linear-gradient(180deg,rgba(65,9,29,.95),rgba(33,6,21,.95))!important}.omega-wall-empty{grid-column:1/-1;padding:62px 20px;text-align:center;border:1px dashed rgba(18,231,255,.25);border-radius:9px;color:#8a95aa;font-size:15px;line-height:1.8;background:rgba(2,5,16,.4)}.omega-wall-empty b{color:#ff69ef}.omega-wall-note{margin-top:20px;padding:14px 17px;border:1px solid rgba(18,231,255,.14);background:rgba(2,5,16,.55);color:#8591a7;font-size:12px;line-height:1.7;border-radius:7px}.omega-wall-note b{color:#ff69ef}
+@media(max-width:1100px){.omega-wall-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:720px){.omega-wall-page{padding:20px 16px 110px}.omega-wall-head{flex-direction:column;align-items:flex-start}.omega-wall-head h1{font-size:28px}.omega-wall-head p{font-size:12px}.omega-wall-grid{grid-template-columns:1fr}.omega-wall-row{grid-template-columns:1fr}.omega-wall-add{width:100%;min-width:0!important}}
 </style>{% endblock %}
 
 {% block content %}
 <div class="omega-wall-page" id="omega-wall-app">
-  <div class="omega-wall-shell">
-    <div class="omega-wall-head">
-      <div>
-        <div class="omega-wall-kicker">OMEGA // MEDIA CONTROL</div>
-        <h1>WALLPAPER CORE</h1>
-        <p>Fondos de video locales · MP4 / WEBM · guardados dentro del proyecto</p>
-      </div>
-      <a class="omega-wall-btn omega-back" href="{% url 'admin:index' %}">← VOLVER AL DECK</a>
-    </div>
+<div class="omega-wall-shell">
+  <div class="omega-wall-head"><div><div class="omega-wall-kicker">OMEGA // MEDIA CONTROL</div><h1>WALLPAPER CORE</h1><p>Elegí videos desde Windows y cargalos directamente al proyecto.</p></div><a class="omega-wall-btn" href="{% url 'admin:index' %}">← VOLVER AL DECK</a></div>
 
-    <form id="omega-upload-form" enctype="multipart/form-data" method="post" action="{% url 'omega-wallpaper-upload' %}">
-      {% csrf_token %}
-      <input id="omega-wall-file" class="omega-upload-input" name="files" type="file" accept="video/mp4,video/webm,.mp4,.webm" multiple>
-    </form>
+  <form id="omega-upload-form" enctype="multipart/form-data" method="post" action="{% url 'omega-wallpaper-upload' %}">{% csrf_token %}<input id="omega-wall-file" class="omega-upload-input" name="files" type="file" accept=".mp4,.webm,video/mp4,video/webm" multiple></form>
 
-    <div class="omega-wall-actions">
-      <label for="omega-wall-file" id="omega-wall-add" class="omega-wall-btn omega-wall-add">📁 AGREGAR VIDEOS DESDE MI PC</label>
-      <button id="omega-wall-refresh" class="omega-wall-btn omega-wall-refresh" type="button">↻ ACTUALIZAR LISTA</button>
-    </div>
-
-    <div class="omega-dropzone" id="omega-dropzone"><strong>ARRASTRÁ UNO O VARIOS MP4 / WEBM ACÁ</strong> — o hacé clic para abrir el explorador de archivos</div>
-    <div id="omega-wall-status" class="omega-wall-status"></div>
-    <div class="omega-wall-grid" id="omega-wall-grid"></div>
-    <div class="omega-wall-note">Ubicación: <b>administrador/static/admin/wallpapers/</b>. Después de subir un video, elegí <b>USAR FONDO</b> para convertirlo en el wallpaper del Dashboard.</div>
+  <div class="omega-wall-actions">
+    <label for="omega-wall-file" id="omega-wall-add" class="omega-wall-btn omega-wall-add">📁 ELEGIR VIDEOS DE MI PC</label>
+    <button id="omega-upload-now" class="omega-wall-btn" type="button" disabled>⬆ SUBIR VIDEOS</button>
+    <button id="omega-wall-refresh" class="omega-wall-btn omega-wall-refresh" type="button">↻ ACTUALIZAR</button>
   </div>
+
+  <div class="omega-upload-box"><div class="omega-upload-box-title">ARCHIVOS SELECCIONADOS</div><div id="omega-selected" class="omega-selected">Todavía no elegiste ningún video.</div><div id="omega-progress-wrap" class="omega-progress-wrap"><div class="omega-progress"><div id="omega-progress-bar" class="omega-progress-bar"></div></div><div id="omega-progress-text" class="omega-progress-text">Preparando subida...</div></div></div>
+  <div id="omega-dropzone" class="omega-dropzone"><strong>ARRASTRÁ UNO O VARIOS MP4 / WEBM ACÁ</strong> — también podés hacer clic aquí.</div>
+  <div id="omega-wall-status" class="omega-wall-status"></div>
+  <div class="omega-wall-grid" id="omega-wall-grid"></div>
+  <div class="omega-wall-note">Los videos quedan físicamente en <b>administrador/static/admin/wallpapers/</b>. Una vez cargados, cada tarjeta tiene <b>USAR FONDO</b> para elegir qué video aparece en el Dashboard.</div>
+</div>
 </div>
 
 <script>
 (() => {
-  const grid=document.getElementById('omega-wall-grid');
-  const file=document.getElementById('omega-wall-file');
-  const add=document.getElementById('omega-wall-add');
-  const refreshBtn=document.getElementById('omega-wall-refresh');
-  const status=document.getElementById('omega-wall-status');
-  const drop=document.getElementById('omega-dropzone');
-  const form=document.getElementById('omega-upload-form');
-  const listUrl='{% url "omega-wallpaper-list" %}';
-  const uploadUrl='{% url "omega-wallpaper-upload" %}';
-  const setUrl='{% url "omega-wallpaper-set" %}';
-  const deleteUrl='{% url "omega-wallpaper-delete" %}';
-  const previewUrl='{% url "omega-wallpaper-preview" %}';
-  const csrfInput=form.querySelector('[name=csrfmiddlewaretoken]');
-  const cookieToken=(document.cookie.match(/(?:^|; )csrftoken=([^;]+)/)||[])[1]||'';
-  const token=csrfInput?.value||decodeURIComponent(cookieToken);
-  const show=(text,error=false)=>{status.textContent=text||'';status.style.color=error?'#ff7898':'#85ffbd'};
+  const grid=document.getElementById('omega-wall-grid'),file=document.getElementById('omega-wall-file'),add=document.getElementById('omega-wall-add'),uploadNow=document.getElementById('omega-upload-now'),refreshBtn=document.getElementById('omega-wall-refresh'),status=document.getElementById('omega-wall-status'),drop=document.getElementById('omega-dropzone'),form=document.getElementById('omega-upload-form'),selected=document.getElementById('omega-selected'),progressWrap=document.getElementById('omega-progress-wrap'),progressBar=document.getElementById('omega-progress-bar'),progressText=document.getElementById('omega-progress-text');
+  const listUrl='{% url "omega-wallpaper-list" %}',uploadUrl='{% url "omega-wallpaper-upload" %}',setUrl='{% url "omega-wallpaper-set" %}',deleteUrl='{% url "omega-wallpaper-delete" %}',previewUrl='{% url "omega-wallpaper-preview" %}';
+  const token=form.querySelector('[name=csrfmiddlewaretoken]')?.value||'';
+  let selectedFiles=[];
+  const show=(t,error=false)=>{status.textContent=t||'';status.style.color=error?'#ff7898':'#85ffbd'};
   const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const size=b=>{b=Number(b||0);const u=['B','KB','MB','GB'];let i=0;while(b>=1024&&i<3){b/=1024;i++}return `${b.toFixed(i?1:0)} ${u[i]}`};
   const preview=n=>`${previewUrl}?filename=${encodeURIComponent(n)}&_=${Date.now()}`;
 
   async function api(path,opt={}){
-    const h=new Headers(opt.headers||{});
-    if(token)h.set('X-CSRFToken',token);
-    h.set('X-Requested-With','XMLHttpRequest');
-    h.set('Accept','application/json');
-    const r=await fetch(path,{credentials:'same-origin',cache:'no-store',...opt,headers:h});
-    const ct=r.headers.get('content-type')||'';
-    const txt=await r.text();
-    let d={};
-    try{d=ct.includes('application/json')?JSON.parse(txt):{detail:txt.slice(0,600)}}catch{d={detail:txt.slice(0,600)}}
-    if(!r.ok)throw new Error((d.detail||d.message||`HTTP ${r.status}`)+` [${r.status}]`);
-    return d;
+    const h=new Headers(opt.headers||{});h.set('X-CSRFToken',token);h.set('X-Requested-With','XMLHttpRequest');h.set('Accept','application/json');
+    const r=await fetch(path,{credentials:'same-origin',cache:'no-store',...opt,headers:h});const ct=r.headers.get('content-type')||'';const txt=await r.text();let d={};try{d=ct.includes('application/json')?JSON.parse(txt):{detail:txt.slice(0,600)}}catch{d={detail:txt.slice(0,600)}}if(!r.ok)throw new Error((d.detail||d.message||`HTTP ${r.status}`)+` [${r.status}]`);return d;
+  }
+
+  function showSelected(files){
+    selectedFiles=[...files].filter(f=>/\.(mp4|webm)$/i.test(f.name));
+    if(!selectedFiles.length){selected.textContent='No hay videos MP4/WEBM seleccionados.';uploadNow.disabled=true;return}
+    selected.innerHTML=selectedFiles.map(f=>`• ${esc(f.name)} — ${size(f.size)}`).join('<br>');
+    uploadNow.disabled=false;show(`${selectedFiles.length} VIDEO(S) LISTOS PARA SUBIR`);
   }
 
   function render(items){
-    grid.innerHTML='';
-    if(!items.length){
-      grid.innerHTML='<div class="omega-wall-empty">NO HAY VIDEOS CARGADOS.<br><b>AGREGAR VIDEOS DESDE MI PC</b> para empezar.</div>';
-      return;
-    }
-    for(const item of items){
-      const card=document.createElement('article');
-      card.className='omega-wall-card'+(item.current?' active':'');
-      card.innerHTML=`<div class="omega-wall-preview"><span class="omega-wall-badge ${item.current?'active':''}">${item.current?'ACTIVO ✓':'GUARDADO'}</span><video muted loop playsinline preload="metadata" src="${preview(item.name)}"></video></div><div class="omega-wall-card-body"><h3 title="${esc(item.name)}">${esc(item.name)}</h3><div class="omega-wall-meta">${size(item.size)} · ${item.current?'ACTIVO EN DASHBOARD':'DISPONIBLE'}</div><div class="omega-wall-row"><button class="omega-wall-btn omega-use" type="button" ${item.current?'disabled':''}>${item.current?'ACTIVO ✓':'USAR FONDO'}</button><button class="omega-wall-btn omega-delete" type="button">ELIMINAR</button></div></div>`;
-      const v=card.querySelector('video');
-      v.addEventListener('mouseenter',()=>v.play().catch(()=>{}));
-      v.addEventListener('mouseleave',()=>v.pause());
-      card.querySelector('.omega-use').onclick=async()=>{
-        const b=card.querySelector('.omega-use');b.disabled=true;b.textContent='CAMBIANDO...';
-        try{const d=await api(setUrl,{method:'POST',body:new URLSearchParams({filename:item.name})});show('FONDO CAMBIADO: '+d.file);await refresh();}
-        catch(e){show(e.message,true);b.disabled=false;b.textContent='USAR FONDO'}
-      };
-      card.querySelector('.omega-delete').onclick=async()=>{
-        if(!confirm(`¿Eliminar "${item.name}" del proyecto?`))return;
-        const b=card.querySelector('.omega-delete');b.disabled=true;b.textContent='ELIMINANDO...';
-        try{await api(deleteUrl,{method:'POST',body:new URLSearchParams({filename:item.name})});show('VIDEO ELIMINADO');await refresh();}
-        catch(e){show(e.message,true);b.disabled=false;b.textContent='ELIMINAR'}
-      };
+    grid.innerHTML='';if(!items.length){grid.innerHTML='<div class="omega-wall-empty">NO HAY VIDEOS CARGADOS.<br><b>ELEGÍ VIDEOS DE MI PC</b> para empezar.</div>';return}
+    items.forEach(item=>{const card=document.createElement('article');card.className='omega-wall-card'+(item.current?' active':'');card.innerHTML=`<div class="omega-wall-preview"><span class="omega-wall-badge ${item.current?'active':''}">${item.current?'ACTIVO ✓':'GUARDADO'}</span><video muted loop playsinline preload="metadata" src="${preview(item.name)}"></video></div><div class="omega-wall-card-body"><h3 title="${esc(item.name)}">${esc(item.name)}</h3><div class="omega-wall-meta">${size(item.size)} · ${item.current?'ACTIVO EN DASHBOARD':'DISPONIBLE'}</div><div class="omega-wall-row"><button class="omega-wall-btn omega-use" type="button" ${item.current?'disabled':''}>${item.current?'ACTIVO ✓':'USAR FONDO'}</button><button class="omega-wall-btn omega-delete" type="button">ELIMINAR</button></div></div>`;
+      const v=card.querySelector('video');v.addEventListener('mouseenter',()=>v.play().catch(()=>{}));v.addEventListener('mouseleave',()=>v.pause());
+      card.querySelector('.omega-use').onclick=async()=>{const b=card.querySelector('.omega-use');b.disabled=true;b.textContent='CAMBIANDO...';try{const d=await api(setUrl,{method:'POST',body:new URLSearchParams({filename:item.name})});show('FONDO CAMBIADO: '+d.file);await refresh()}catch(e){show(e.message,true);b.disabled=false;b.textContent='USAR FONDO'}};
+      card.querySelector('.omega-delete').onclick=async()=>{if(!confirm(`¿Eliminar "${item.name}" del proyecto?`))return;const b=card.querySelector('.omega-delete');b.disabled=true;b.textContent='ELIMINANDO...';try{await api(deleteUrl,{method:'POST',body:new URLSearchParams({filename:item.name})});show('VIDEO ELIMINADO DEL PROYECTO');await refresh()}catch(e){show(e.message,true);b.disabled=false;b.textContent='ELIMINAR'}};
       grid.appendChild(card);
-    }
+    });
   }
 
-  async function refresh(){
-    try{const d=await api(listUrl);render(d.items||[])}
-    catch(e){show('NO SE PUDO LEER LA LISTA: '+e.message,true)}
+  async function refresh(){try{const d=await api(listUrl);render(d.items||[])}catch(e){show('NO SE PUDO LEER LA LISTA: '+e.message,true)}}
+
+  function uploadSelected(){
+    if(!selectedFiles.length)return;
+    uploadNow.disabled=true;refreshBtn.disabled=true;add.style.pointerEvents='none';progressWrap.classList.add('show');progressBar.style.width='0%';progressText.textContent='Preparando subida...';show(`SUBIENDO ${selectedFiles.length} VIDEO(S)...`);
+    const fd=new FormData();selectedFiles.forEach(f=>fd.append('files',f,f.name));
+    const xhr=new XMLHttpRequest();xhr.open('POST',uploadUrl,true);xhr.withCredentials=true;xhr.setRequestHeader('X-CSRFToken',token);xhr.setRequestHeader('X-Requested-With','XMLHttpRequest');xhr.setRequestHeader('Accept','application/json');
+    xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round((e.loaded/e.total)*100);progressBar.style.width=p+'%';progressText.textContent=`Subiendo... ${p}%`}};
+    xhr.onload=async()=>{let d={};try{d=JSON.parse(xhr.responseText||'{}')}catch{d={detail:(xhr.responseText||'').slice(0,600)}}if(xhr.status<200||xhr.status>=300){show('ERROR AL SUBIR: '+(d.detail||d.message||`HTTP ${xhr.status}`),true)}else{progressBar.style.width='100%';progressText.textContent='Carga terminada';await refresh();show(`✓ ${d.saved?.length||0} VIDEO(S) CARGADO(S) CORRECTAMENTE`);selectedFiles=[];selected.textContent='Todavía no elegiste ningún video.';file.value=''}uploadNow.disabled=true;refreshBtn.disabled=false;add.style.pointerEvents='';};
+    xhr.onerror=()=>{show('ERROR DE CONEXIÓN DURANTE LA SUBIDA',true);uploadNow.disabled=false;refreshBtn.disabled=false;add.style.pointerEvents='';};xhr.ontimeout=()=>{show('LA SUBIDA TARDÓ DEMASIADO Y FUE INTERRUMPIDA',true);uploadNow.disabled=false;refreshBtn.disabled=false;add.style.pointerEvents='';};xhr.send(fd);
   }
 
-  async function uploadFiles(list){
-    const files=[...list];
-    if(!files.length)return;
-    const good=files.filter(f=>/\.(mp4|webm)$/i.test(f.name));
-    if(!good.length){show('Elegí uno o varios archivos .MP4 o .WEBM',true);return}
-    add.style.pointerEvents='none';refreshBtn.disabled=true;show(`SUBIENDO ${good.length} VIDEO(S)...`);
-    let saved=0,errs=[];
-    try{
-      for(const f of good){
-        show(`SUBIENDO: ${f.name}`);
-        const fd=new FormData();fd.append('files',f,f.name);
-        const d=await api(uploadUrl,{method:'POST',body:fd});
-        saved+=(d.saved||[]).length;(d.errors||[]).forEach(x=>errs.push(x));
-      }
-      await refresh();
-      show(errs.length?`SUBIDOS: ${saved} · ERRORES: ${errs.join(' • ')}`:`✓ ${saved} VIDEO(S) AGREGADO(S) CORRECTAMENTE`,!!errs.length);
-    }catch(e){show('ERROR AL SUBIR: '+e.message,true)}
-    finally{add.style.pointerEvents='';refreshBtn.disabled=false;file.value=''}
-  }
-
-  file.addEventListener('change',()=>uploadFiles(file.files));
-  drop.addEventListener('click',()=>file.click());
-  refreshBtn.addEventListener('click',refresh);
-  drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('drag')});
-  drop.addEventListener('dragleave',()=>drop.classList.remove('drag'));
-  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag');uploadFiles(e.dataTransfer.files)});
+  file.addEventListener('change',()=>showSelected(file.files));uploadNow.addEventListener('click',uploadSelected);refreshBtn.addEventListener('click',refresh);drop.addEventListener('click',()=>file.click());
+  drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('drag')});drop.addEventListener('dragleave',()=>drop.classList.remove('drag'));drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag');showSelected(e.dataTransfer.files)});
   refresh();
 })();
 </script>
