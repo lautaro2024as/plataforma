@@ -5,10 +5,10 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'admin/omega/omega_admin.css' %}">
 <link rel="stylesheet" href="{% static 'admin/omega/omega_scene.css' %}">
+<link rel="stylesheet" href="{% static 'admin/omega/omega_fix.css' %}">
 <style>
-body.dashboard #header, body.dashboard #nav-sidebar, body.dashboard .breadcrumbs{display:none!important}
-body.dashboard #container, body.dashboard #main, body.dashboard #content{margin:0!important;padding:0!important;max-width:none!important;min-height:100vh!important}
-body.dashboard #content-start{margin:0!important}
+#nav-sidebar,.breadcrumbs{display:none!important}
+#container #main,#content,#content-main{margin-left:0!important;max-width:none!important;width:100%!important}
 </style>
 {% endblock %}
 {% block branding %}<h1 id="site-name"><a href="{% url 'admin:index' %}">⚡ SISTEMA_CENTRAL :: OMEGA ⚡</a></h1>{% endblock %}
