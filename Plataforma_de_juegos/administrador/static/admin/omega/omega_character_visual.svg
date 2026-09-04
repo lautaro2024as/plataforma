@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" preserveAspectRatio="none">
+<defs>
+  <radialGradient id="bg" cx="58%" cy="45%" r="75%"><stop offset="0%" stop-color="#24103f"/><stop offset="45%" stop-color="#0a0718"/><stop offset="100%" stop-color="#02040c"/></radialGradient>
+  <linearGradient id="grid" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff32e6" stop-opacity=".22"/><stop offset="55%" stop-color="#17eaff" stop-opacity=".05"/><stop offset="100%" stop-color="#04050d" stop-opacity="0"/></linearGradient>
+  <filter id="glow"><feGaussianBlur stdDeviation="14" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="1000" height="620" fill="url(#bg)"/>
+<path d="M0 520 H1000 M0 470 H1000 M0 420 H1000 M0 370 H1000 M0 320 H1000 M0 270 H1000 M0 220 H1000" stroke="#17eaff" stroke-opacity=".08" fill="none"/>
+<path d="M70 0 V620 M170 0 V620 M270 0 V620 M730 0 V620 M830 0 V620 M930 0 V620" stroke="#ff32e6" stroke-opacity=".06" fill="none"/>
+<ellipse cx="520" cy="370" rx="250" ry="210" fill="#ff32e6" fill-opacity=".08" filter="url(#glow)"/>
+<image href="data:image/gif;base64,
