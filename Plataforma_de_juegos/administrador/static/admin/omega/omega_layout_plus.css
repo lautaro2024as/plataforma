@@ -1,0 +1,44 @@
+/* OMEGA dashboard: paneles más grandes, menos aire y mejor aprovechamiento de pantallas anchas */
+.omega-deck{padding:18px 24px 18px}
+.omega-topbar{height:54px;padding-bottom:12px;margin-bottom:16px}
+.omega-brand{font-size:24px;letter-spacing:4px}
+.omega-top-meta{gap:10px}
+.chip{font-size:9px;padding:7px 10px}
+.omega-grid{grid-template-columns:270px minmax(700px,1fr) 390px;gap:18px;min-height:calc(100vh - 120px)}
+.omega-left,.omega-right,.omega-center{gap:14px}
+.omega-panel{border-radius:7px}
+.panel-head{padding:12px 14px}
+.panel-head .accent,.panel-kicker{font-size:12px}
+.panel-head small,.panel-kicker span{font-size:8px}
+.nav-panel a{padding:12px 12px;font-size:11px;margin:2px 6px}
+.nav-panel a b{font-size:8px}
+.telemetry-line{padding:8px 12px;font-size:9px}
+.metric{padding:10px 12px 0}
+.metric label{font-size:9px}
+.metric>div{height:7px;margin-top:5px}
+.stats-row{gap:10px}
+.omega-stat{padding:12px 14px;min-height:82px}
+.omega-stat span,.omega-stat small{font-size:8px}
+.omega-stat strong{font-size:30px;margin:7px 0}
+.operator-panel{min-height:520px}
+.operator-stage{min-height:420px;height:420px}
+.operator-caption{left:15px!important;bottom:14px!important;padding:10px 12px!important}
+.operator-caption b{font-size:10px}
+.operator-caption span{font-size:8px}
+.operator-controls{right:14px!important;top:14px!important}
+.operator-controls a{font-size:8px}
+.operator-footer{padding:10px 14px;font-size:8px}
+.chart-panel{min-height:250px}
+.line-chart{height:205px}
+.game-list a{padding:11px 12px;font-size:9px}
+.quick-grid{gap:9px;padding:11px}
+.quick-grid a{padding:12px;font-size:8px}
+.quick-grid a span{font-size:18px}
+.feed{padding:7px 12px}
+.feed div{padding:9px 0;font-size:8px}
+.model-list{max-height:260px;padding:6px 9px}
+.model-list a{padding:9px;font-size:8px}
+.omega-footer{padding-top:10px;font-size:8px}
+@media(max-width:1500px){.omega-grid{grid-template-columns:245px minmax(580px,1fr) 340px;gap:14px}.operator-panel{min-height:450px}.operator-stage{min-height:360px;height:360px}}
+@media(max-width:1150px){.omega-grid{grid-template-columns:210px minmax(0,1fr)}.omega-right{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,1fr)}}
+@media(max-width:800px){.omega-deck{padding:10px}.omega-grid{grid-template-columns:1fr}.omega-right{grid-column:auto;display:flex}.stats-row{grid-template-columns:repeat(2,1fr)}.operator-stage{min-height:310px;height:310px}}
