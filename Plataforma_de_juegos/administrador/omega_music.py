@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import re
-import shutil
 from pathlib import Path
 
 from django.conf import settings
@@ -15,7 +14,6 @@ from django.views.decorators.http import require_GET, require_POST
 # La música vive dentro del proyecto para que pueda viajar junto con él.
 MUSIC_ROOT = Path(settings.BASE_DIR) / "administrador" / "static" / "admin" / "music"
 META_FILE = MUSIC_ROOT / "library.json"
-LEGACY_ROOT = Path(settings.BASE_DIR) / "omega_data" / "music"
 ALLOWED_EXTENSIONS = {".mp3", ".wav", ".ogg", ".m4a", ".aac", ".flac", ".webm"}
 MAX_BYTES = 250 * 1024 * 1024
 SAFE_NAME = re.compile(r"[^a-zA-Z0-9._ -]+")
@@ -44,12 +42,7 @@ def _write_library(items):
 
 
 def _public_item(item):
-    return {
-        "id": item["id"],
-        "name": item["name"],
-        "url": f"/admin/omega/music/stream/{item['id']}/",
-        "size": item.get("size", 0),
-    }
+    return {"id": item["id"], "name": item["name"], "url": f"/admin/omega/music/stream/{item['id']}/", "size": item.get("size", 0)}
 
 
 @staff_member_required
@@ -102,6 +95,10 @@ def music_upload(request):
     return JsonResponse({"ok": True, "item": _public_item(item)})
 
 
+def _content_type(path):
+    return {".mp3": "audio/mpeg", ".wav": "audio/wav", ".ogg": "audio/ogg", ".m4a": "audio/mp4", ".aac": "audio/aac", ".flac": "audio/flac", ".webm": "audio/webm"}.get(path.suffix.lower(), "application/octet-stream")
+
+
 @staff_member_required
 @require_GET
 def music_stream(request, music_id):
@@ -110,13 +107,45 @@ def music_stream(request, music_id):
     item = next((x for x in _read_library() if str(x.get("id")) == str(music_id)), None)
     if not item:
         return JsonResponse({"detail": "Tema no encontrado."}, status=404)
+
     path = (MUSIC_ROOT / item.get("filename", "")).resolve()
     root = MUSIC_ROOT.resolve()
-    if path.parent != root or path.suffix.lower() not in ALLOWED_EXTENSIONS:
-        return JsonResponse({"detail": "Archivo de música inválido."}, status=400)
-    if not path.exists() or not path.is_file():
+    if path.parent != root or path.suffix.lower() not in ALLOWED_EXTENSIONS or not path.is_file():
         return JsonResponse({"detail": "Archivo de música no encontrado."}, status=404)
-    return FileResponse(path.open("rb"), as_attachment=False, filename=item.get("name", path.name))
+
+    total = path.stat().st_size
+    range_header = request.headers.get("Range", "").strip()
+    if range_header.startswith("bytes="):
+        spec = range_header[6:].split(",", 1)[0].strip()
+        try:
+            start_s, end_s = spec.split("-", 1)
+            if start_s:
+                start = int(start_s)
+                end = int(end_s) if end_s else total - 1
+            else:
+                suffix_len = int(end_s)
+                start = max(total - suffix_len, 0)
+                end = total - 1
+            if start < 0 or start >= total or end < start:
+                raise ValueError
+            end = min(end, total - 1)
+            length = end - start + 1
+            file_obj = path.open("rb")
+            file_obj.seek(start)
+            response = FileResponse(file_obj, content_type=_content_type(path), status=206)
+            response["Content-Range"] = f"bytes {start}-{end}/{total}"
+            response["Content-Length"] = str(length)
+            response["Accept-Ranges"] = "bytes"
+            response["Cache-Control"] = "no-cache"
+            return response
+        except (ValueError, OSError):
+            return JsonResponse({"detail": "Rango de audio inválido."}, status=416)
+
+    response = FileResponse(path.open("rb"), content_type=_content_type(path))
+    response["Content-Length"] = str(total)
+    response["Accept-Ranges"] = "bytes"
+    response["Cache-Control"] = "no-cache"
+    return response
 
 
 @staff_member_required
