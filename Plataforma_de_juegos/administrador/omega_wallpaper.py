@@ -249,65 +249,75 @@ def wallpaper_set(request):
 @staff_member_required
 @require_POST
 def wallpaper_delete(request):
-    """Delete exactly the portable wallpaper represented by the rendered card.
-
-    We deliberately resolve the folder from OMEGA's current discovery list instead of
-    parsing the client-supplied ID. This prevents old/duplicated ID formats from ever
-    reaching the filesystem and fixes the recurring 'ID de wallpaper inválido' error.
-    """
     if not request.user.is_superuser:
         return JsonResponse({"detail": "Forbidden"}, status=403)
-
     try:
         payload = json.loads(request.body or "{}")
     except (ValueError, TypeError):
         return JsonResponse({"detail": "JSON inválido."}, status=400)
-
     target_id = str(payload.get("id", "")).strip()
     if not target_id:
         return JsonResponse({"detail": "No se recibió el fondo a eliminar."}, status=400)
-
     items, _ = _discover()
     item = next((x for x in items if x.get("source") == "portable" and x.get("id") == target_id), None)
-
-    # Compatibility fallback for an old page that sends a duplicated portable- prefix.
     if item is None:
         clean_id = target_id
         while clean_id.lower().startswith("portable-"):
             clean_id = clean_id[len("portable-"):]
         item = next((x for x in items if x.get("source") == "portable" and (x.get("id") == f"portable-{clean_id}" or x.get("id") == clean_id)), None)
-
     if item is None:
         return JsonResponse({"detail": "No encontré ese fondo portátil en OMEGA. Recargá la página."}, status=404)
-
     try:
         target = Path(item["file"]).resolve().parent
         root = PORTABLE_ROOT.resolve()
         if target == root or root not in target.parents:
             return JsonResponse({"detail": "El fondo apunta fuera del almacenamiento portátil."}, status=400)
-
-        # Remove the extracted runtime copy.
         shutil.rmtree(target)
-
-        # Remove the portable project bundle too, so it does not reappear after restart.
         bundle = PROJECT_BUNDLES / f"{target.name}.zip"
         if bundle.exists():
             bundle.unlink()
-
-        # Clear active state only if this exact portable folder was active.
         try:
             active = json.loads(STATE_FILE.read_text(encoding="utf-8"))
-        except (OSError, ValueError, TypeError, json.JSONDecodeError):
-            active = {}
-        active_file = str(active.get("file", "")) if isinstance(active, dict) else ""
-        if active_file:
-            try:
-                if Path(active_file).resolve().parent == target:
+            if isinstance(active, dict):
+                active_file = str(active.get("file", ""))
+                if active_file and Path(active_file).resolve().parent == target:
                     STATE_FILE.unlink(missing_ok=True)
-            except OSError:
-                pass
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            pass
     except OSError as exc:
         return JsonResponse({"detail": f"No se pudo eliminar el fondo: {exc}"}, status=500)
-
     CACHE["at"] = 0
     return JsonResponse({"ok": True, "message": f"Fondo '{item['name']}' eliminado completamente de OMEGA."})
+
+
+@staff_member_required
+@require_POST
+def wallpaper_remove_by_name(request, name: str):
+    """Hard-delete endpoint used by the UI; no JSON ID parsing is involved."""
+    if not request.user.is_superuser:
+        return JsonResponse({"detail": "Forbidden"}, status=403)
+    safe_name = unquote(str(name or "")).strip()
+    if not safe_name or safe_name in {".", ".."} or Path(safe_name).name != safe_name or ".." in Path(safe_name).parts:
+        return JsonResponse({"detail": "Nombre de fondo inválido."}, status=400)
+    target = (PORTABLE_ROOT / safe_name).resolve()
+    root = PORTABLE_ROOT.resolve()
+    if target == root or root not in target.parents:
+        return JsonResponse({"detail": "Ruta de fondo inválida."}, status=400)
+    if not target.exists():
+        CACHE["at"] = 0
+        return JsonResponse({"ok": True, "message": "El fondo ya no existe; la tarjeta será eliminada."})
+    try:
+        shutil.rmtree(target)
+        bundle = PROJECT_BUNDLES / f"{target.name}.zip"
+        bundle.unlink(missing_ok=True)
+        try:
+            active = json.loads(STATE_FILE.read_text(encoding="utf-8"))
+            active_file = str(active.get("file", "")) if isinstance(active, dict) else ""
+            if active_file and Path(active_file).resolve().parent == target:
+                STATE_FILE.unlink(missing_ok=True)
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            pass
+    except OSError as exc:
+        return JsonResponse({"detail": f"No se pudo eliminar el fondo: {exc}"}, status=500)
+    CACHE["at"] = 0
+    return JsonResponse({"ok": True, "message": "Fondo eliminado correctamente."})
