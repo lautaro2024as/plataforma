@@ -4,7 +4,7 @@ URL configuration for Plataforma_de_juegos project.
 from django.contrib import admin
 from django.urls import path
 from administrador.omega_system import system_stats
-from administrador.omega_wallpaper import wallpaper_delete, wallpaper_import, wallpaper_list, wallpaper_panel, wallpaper_preview, wallpaper_set
+from administrador.omega_wallpaper import wallpaper_delete, wallpaper_import, wallpaper_list, wallpaper_panel, wallpaper_preview, wallpaper_remove_by_name, wallpaper_set
 from administrador.omega_music import music_delete, music_list, music_player, music_stream, music_upload
 from administrador.omega_scene_engine import scene_frame
 
@@ -17,6 +17,7 @@ urlpatterns = [
     path('admin/omega/wallpapers/render/<str:wallpaper_id>/', scene_frame, name='omega-wallpaper-render'),
     path('admin/omega/wallpapers/set/', wallpaper_set, name='omega-wallpaper-set'),
     path('admin/omega/wallpapers/delete/', wallpaper_delete, name='omega-wallpaper-delete'),
+    path('admin/omega/wallpapers/remove/<str:name>/', wallpaper_remove_by_name, name='omega-wallpaper-remove'),
     path('admin/omega/music/', music_player, name='omega-music-player'),
     path('admin/omega/music/list/', music_list, name='omega-music-list'),
     path('admin/omega/music/upload/', music_upload, name='omega-music-upload'),
