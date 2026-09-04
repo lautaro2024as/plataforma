@@ -5,6 +5,7 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import FileResponse, JsonResponse
+from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_POST
 
 
@@ -44,6 +45,13 @@ def _public_item(item):
         "url": f"/admin/omega/music/stream/{item['id']}/",
         "size": item.get("size", 0),
     }
+
+
+@staff_member_required
+def music_player(request):
+    if not request.user.is_superuser:
+        return JsonResponse({"detail": "Solo el superusuario puede usar el Music Core."}, status=403)
+    return render(request, "admin/omega_music_player.html")
 
 
 @staff_member_required
