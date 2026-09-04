@@ -6,6 +6,7 @@ from django.urls import path
 from administrador.omega_system import system_stats
 from administrador.omega_wallpaper import wallpaper_import, wallpaper_list, wallpaper_panel, wallpaper_preview, wallpaper_set
 from administrador.omega_music import music_delete, music_list, music_player, music_stream, music_upload
+from administrador.omega_scene_engine import scene_frame
 
 urlpatterns = [
     path('admin/omega/system-stats/', system_stats, name='omega-system-stats'),
@@ -13,6 +14,7 @@ urlpatterns = [
     path('admin/omega/wallpapers/list/', wallpaper_list, name='omega-wallpaper-list'),
     path('admin/omega/wallpapers/import/', wallpaper_import, name='omega-wallpaper-import'),
     path('admin/omega/wallpapers/preview/', wallpaper_preview, name='omega-wallpaper-preview'),
+    path('admin/omega/wallpapers/render/<str:wallpaper_id>/', scene_frame, name='omega-wallpaper-render'),
     path('admin/omega/wallpapers/set/', wallpaper_set, name='omega-wallpaper-set'),
     path('admin/omega/music/', music_player, name='omega-music-player'),
     path('admin/omega/music/list/', music_list, name='omega-music-list'),
