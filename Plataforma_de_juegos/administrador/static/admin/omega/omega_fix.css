@@ -1,0 +1,12 @@
+/* OMEGA visual correction layer */
+#nav-sidebar{display:none!important}
+.breadcrumbs{display:none!important}
+#container #main{margin-left:0!important}
+#content,#content-main{margin-left:0!important;max-width:none!important;width:100%!important}
+.omega-deck{margin-left:0!important;width:100%!important}
+.operator-stage{background:#03050d!important}
+.operator-backdrop{background:radial-gradient(circle at 58% 45%,rgba(255,30,215,.18),transparent 22%),radial-gradient(circle at 72% 58%,rgba(0,234,255,.12),transparent 34%),linear-gradient(180deg,#05030d 0,#020713 100%)!important}
+.operator-backdrop:before{background-image:url('/static/admin/omega/omega_reference_scene.svg')!important;background-size:cover!important;background-position:center!important;opacity:1!important;filter:none!important;transform:none!important}
+.operator-scanlines{z-index:2!important}
+.operator-caption,.operator-controls{z-index:3!important}
+@media(min-width:1181px){#content-main{padding-left:0!important}}
