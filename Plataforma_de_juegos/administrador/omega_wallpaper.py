@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import time
 import zipfile
@@ -16,6 +17,7 @@ from django.views.decorators.http import require_GET, require_POST
 CACHE = {"at": 0.0, "items": [], "exe": None}
 CACHE_TTL = 30
 PORTABLE_ROOT = Path(settings.BASE_DIR) / "omega_data" / "wallpapers"
+PROJECT_BUNDLES = Path(settings.BASE_DIR) / "omega_wallpapers"
 STATE_FILE = Path(settings.BASE_DIR) / "omega_data" / "wallpaper_state.json"
 
 
@@ -130,9 +132,7 @@ def _store_active(item):
 
 
 def _portable_name(value):
-    """Return a safe portable-folder name from an ID, tolerating old duplicated prefixes."""
     raw = unquote(str(value or "")).strip().replace("\\", "/")
-    # Old builds could accidentally persist portable-portable-* or even an old absolute path.
     while raw.lower().startswith("portable-"):
         raw = raw[len("portable-"):]
     raw = raw.strip("/")
@@ -197,16 +197,11 @@ def wallpaper_import(request):
             for chunk in uploaded.chunks():
                 output.write(chunk)
         with zipfile.ZipFile(temp) as zf:
-            if not any(Path(name).name == "project.json" for name in zf.namelist()):
+            if not any(Path(name).name.lower() == "project.json" for name in zf.namelist()):
                 raise ValueError("No se encontró project.json; no parece un paquete exportable de Wallpaper Engine.")
             _safe_extract(zf, target)
     except (OSError, zipfile.BadZipFile, ValueError) as exc:
-        for p in sorted(target.rglob("*"), reverse=True):
-            if p.is_file():
-                p.unlink(missing_ok=True)
-            elif p.exists():
-                p.rmdir()
-        target.rmdir()
+        shutil.rmtree(target, ignore_errors=True)
         return JsonResponse({"detail": f"No se pudo importar: {exc}"}, status=400)
     finally:
         temp.unlink(missing_ok=True)
@@ -240,7 +235,7 @@ def wallpaper_set(request):
 
     _store_active(item)
     if item["source"] == "portable":
-        return JsonResponse({"ok": True, "file": item["file"], "id": item["id"], "portable": True, "open_url": "/admin/omega/wallpapers/", "message": "Fondo portátil seleccionado y guardado en OMEGA."})
+        return JsonResponse({"ok": True, "file": item["file"], "id": item["id"], "portable": True, "message": "Fondo portátil seleccionado y guardado en OMEGA."})
 
     if not exe:
         return JsonResponse({"detail": "No se encontró wallpaper64.exe."}, status=503)
@@ -254,34 +249,65 @@ def wallpaper_set(request):
 @staff_member_required
 @require_POST
 def wallpaper_delete(request):
+    """Delete exactly the portable wallpaper represented by the rendered card.
+
+    We deliberately resolve the folder from OMEGA's current discovery list instead of
+    parsing the client-supplied ID. This prevents old/duplicated ID formats from ever
+    reaching the filesystem and fixes the recurring 'ID de wallpaper inválido' error.
+    """
     if not request.user.is_superuser:
         return JsonResponse({"detail": "Forbidden"}, status=403)
+
     try:
         payload = json.loads(request.body or "{}")
-        name = _portable_name(payload.get("id", ""))
-    except (ValueError, TypeError, json.JSONDecodeError) as exc:
-        return JsonResponse({"detail": str(exc) or "ID de wallpaper inválido."}, status=400)
+    except (ValueError, TypeError):
+        return JsonResponse({"detail": "JSON inválido."}, status=400)
 
-    target = (PORTABLE_ROOT / name).resolve()
-    root = PORTABLE_ROOT.resolve()
-    if target != root and root not in target.parents:
-        return JsonResponse({"detail": "Ruta de wallpaper inválida."}, status=400)
-    if not target.exists():
-        return JsonResponse({"detail": "El fondo portátil no existe."}, status=404)
+    target_id = str(payload.get("id", "")).strip()
+    if not target_id:
+        return JsonResponse({"detail": "No se recibió el fondo a eliminar."}, status=400)
+
+    items, _ = _discover()
+    item = next((x for x in items if x.get("source") == "portable" and x.get("id") == target_id), None)
+
+    # Compatibility fallback for an old page that sends a duplicated portable- prefix.
+    if item is None:
+        clean_id = target_id
+        while clean_id.lower().startswith("portable-"):
+            clean_id = clean_id[len("portable-"):]
+        item = next((x for x in items if x.get("source") == "portable" and (x.get("id") == f"portable-{clean_id}" or x.get("id") == clean_id)), None)
+
+    if item is None:
+        return JsonResponse({"detail": "No encontré ese fondo portátil en OMEGA. Recargá la página."}, status=404)
 
     try:
+        target = Path(item["file"]).resolve().parent
+        root = PORTABLE_ROOT.resolve()
+        if target == root or root not in target.parents:
+            return JsonResponse({"detail": "El fondo apunta fuera del almacenamiento portátil."}, status=400)
+
+        # Remove the extracted runtime copy.
         shutil.rmtree(target)
+
+        # Remove the portable project bundle too, so it does not reappear after restart.
+        bundle = PROJECT_BUNDLES / f"{target.name}.zip"
+        if bundle.exists():
+            bundle.unlink()
+
+        # Clear active state only if this exact portable folder was active.
+        try:
+            active = json.loads(STATE_FILE.read_text(encoding="utf-8"))
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            active = {}
+        active_file = str(active.get("file", "")) if isinstance(active, dict) else ""
+        if active_file:
+            try:
+                if Path(active_file).resolve().parent == target:
+                    STATE_FILE.unlink(missing_ok=True)
+            except OSError:
+                pass
     except OSError as exc:
         return JsonResponse({"detail": f"No se pudo eliminar el fondo: {exc}"}, status=500)
 
-    # Never let a malformed legacy state file turn a successful deletion into an error.
-    try:
-        active = json.loads(STATE_FILE.read_text(encoding="utf-8"))
-        active_name = _portable_name(active.get("id", "")) if isinstance(active, dict) else ""
-        if active_name == name:
-            STATE_FILE.unlink(missing_ok=True)
-    except (OSError, ValueError, TypeError, json.JSONDecodeError):
-        pass
-
     CACHE["at"] = 0
-    return JsonResponse({"ok": True, "message": "Fondo eliminado correctamente."})
+    return JsonResponse({"ok": True, "message": f"Fondo '{item['name']}' eliminado completamente de OMEGA."})
