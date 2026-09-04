@@ -1,11 +1,11 @@
 import json
 import os
 import re
-import shutil
 import subprocess
 import time
 import zipfile
 from pathlib import Path
+from urllib.parse import unquote
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
@@ -130,10 +130,13 @@ def _store_active(item):
 
 
 def _portable_name(value):
-    raw = str(value or "").strip()
-    if raw.startswith("portable-"):
+    """Return a safe portable-folder name from an ID, tolerating old duplicated prefixes."""
+    raw = unquote(str(value or "")).strip().replace("\\", "/")
+    # Old builds could accidentally persist portable-portable-* or even an old absolute path.
+    while raw.lower().startswith("portable-"):
         raw = raw[len("portable-"):]
-    if not raw or raw in {".", ".."} or Path(raw).name != raw or ".." in Path(raw).parts:
+    raw = raw.strip("/")
+    if not raw or raw in {".", ".."} or "/" in raw or ".." in Path(raw).parts:
         raise ValueError("ID de wallpaper inválido")
     return raw
 
@@ -255,8 +258,7 @@ def wallpaper_delete(request):
         return JsonResponse({"detail": "Forbidden"}, status=403)
     try:
         payload = json.loads(request.body or "{}")
-        target_id = payload.get("id", "")
-        name = _portable_name(target_id)
+        name = _portable_name(payload.get("id", ""))
     except (ValueError, TypeError, json.JSONDecodeError) as exc:
         return JsonResponse({"detail": str(exc) or "ID de wallpaper inválido."}, status=400)
 
@@ -269,15 +271,17 @@ def wallpaper_delete(request):
 
     try:
         shutil.rmtree(target)
-        active = {}
-        try:
-            active = json.loads(STATE_FILE.read_text(encoding="utf-8"))
-        except (OSError, ValueError, TypeError):
-            active = {}
-        if _portable_name(active.get("id", "")) == name if active else False:
-            STATE_FILE.unlink(missing_ok=True)
     except OSError as exc:
         return JsonResponse({"detail": f"No se pudo eliminar el fondo: {exc}"}, status=500)
+
+    # Never let a malformed legacy state file turn a successful deletion into an error.
+    try:
+        active = json.loads(STATE_FILE.read_text(encoding="utf-8"))
+        active_name = _portable_name(active.get("id", "")) if isinstance(active, dict) else ""
+        if active_name == name:
+            STATE_FILE.unlink(missing_ok=True)
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        pass
 
     CACHE["at"] = 0
     return JsonResponse({"ok": True, "message": "Fondo eliminado correctamente."})
