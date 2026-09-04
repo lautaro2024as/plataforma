@@ -4,7 +4,7 @@
 
   const listUrl = root.dataset.listUrl;
   const uploadUrl = root.dataset.uploadUrl;
-  const audio = document.getElementById('music-audio');
+  const audio = document.getElementById('omega-pm-audio') || document.getElementById('music-audio');
   const listEl = document.getElementById('music-list');
   const titleEl = document.getElementById('music-title');
   const metaEl = document.getElementById('music-meta');
@@ -16,7 +16,7 @@
   const loopBtn = document.getElementById('music-loop');
   const eq = document.querySelector('.eq');
   const countEl = document.getElementById('music-count');
-  const stateKey = 'omega_music_state_v1';
+  const stateKey = 'omega_music_state_v2';
   let items = [];
   let index = Number(localStorage.getItem(stateKey + ':index') || 0);
   let loop = localStorage.getItem(stateKey + ':loop') === '1';
@@ -33,6 +33,8 @@
     localStorage.setItem(stateKey + ':index', String(index));
     localStorage.setItem(stateKey + ':loop', loop ? '1' : '0');
     localStorage.setItem(stateKey + ':volume', String(audio.volume));
+    localStorage.setItem(stateKey + ':time', String(audio.currentTime || 0));
+    localStorage.setItem(stateKey + ':playing', String(!audio.paused));
   };
   const setPlayingUI = () => {
     const playing = !audio.paused;
@@ -72,7 +74,13 @@
       row.querySelector('.delete').onclick = async () => {
         if (!confirm(`Eliminar "${item.name}" de la biblioteca?`)) return;
         const r = await fetch(`/admin/omega/music/delete/${encodeURIComponent(item.id)}/`, {method: 'POST', headers: {'X-CSRFToken': csrf()}});
-        if (r.ok) { items = items.filter(x => x.id !== item.id); if (index >= items.length) index = Math.max(0, items.length - 1); if (items.length) load(index); else { audio.removeAttribute('src'); audio.load(); } render(); }
+        if (r.ok) {
+          items = items.filter(x => x.id !== item.id);
+          if (index >= items.length) index = Math.max(0, items.length - 1);
+          if (items.length) load(index);
+          else { audio.removeAttribute('src'); audio.load(); localStorage.removeItem(stateKey + ':playing'); }
+          render();
+        }
       };
       listEl.appendChild(row);
     });
@@ -84,7 +92,7 @@
       if (!r.ok) throw new Error(data.detail || 'No autorizado');
       items = data.items || [];
       render();
-      if (items.length) load(Math.min(index, items.length - 1));
+      if (items.length && !audio.src) load(Math.min(index, items.length - 1));
     } catch (e) { listEl.innerHTML = `<div class="empty">${e.message}</div>`; }
   };
 
@@ -100,7 +108,7 @@
   loopBtn.onclick = () => { loop = !loop; audio.loop = loop; loopBtn.classList.toggle('on', loop); loopBtn.textContent = loop ? 'LOOP ON' : 'LOOP OFF'; saveState(); };
   audio.addEventListener('play', setPlayingUI);
   audio.addEventListener('pause', setPlayingUI);
-  audio.addEventListener('timeupdate', () => { currentEl.textContent = fmt(audio.currentTime); if (audio.duration) progress.value = String((audio.currentTime / audio.duration) * 100); });
+  audio.addEventListener('timeupdate', () => { currentEl.textContent = fmt(audio.currentTime); if (audio.duration) progress.value = String((audio.currentTime / audio.duration) * 100); saveState(); });
   audio.addEventListener('loadedmetadata', () => { durationEl.textContent = fmt(audio.duration); });
   audio.addEventListener('ended', () => { if (!audio.loop) load(index + 1, true); });
   progress.oninput = () => { if (audio.duration) audio.currentTime = (Number(progress.value) / 100) * audio.duration; };
