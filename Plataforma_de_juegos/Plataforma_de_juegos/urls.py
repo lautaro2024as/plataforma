@@ -5,14 +5,13 @@ from django.contrib import admin
 from django.urls import path
 from administrador.omega_system import system_stats
 from administrador.omega_wallpaper import wallpaper_import, wallpaper_list, wallpaper_panel, wallpaper_preview, wallpaper_set
-from administrador.omega_portable import activate as portable_activate, import_bundle as portable_import, listing as portable_list, panel as portable_panel, preview as portable_preview
+from administrador.omega_portable2 import activate as portable_activate, import_bundle as portable_import, listing as portable_list, panel as portable_panel, preview as portable_preview
 from administrador.omega_music import music_delete, music_list, music_player, music_stream, music_upload
 from administrador.omega_scene_engine import scene_frame
 
 urlpatterns = [
     path('admin/omega/system-stats/', system_stats, name='omega-system-stats'),
-    # OMEGA portable wallpaper engine is intentionally first: these routes replace the old
-    # path-based selector without breaking the existing route names used by the admin UI.
+    # OMEGA Portable Engine is the primary wallpaper system. Existing legacy routes remain available under explicit legacy URLs.
     path('admin/omega/wallpapers/', portable_panel, name='omega-wallpapers'),
     path('admin/omega/wallpapers/list/', portable_list, name='omega-wallpaper-list'),
     path('admin/omega/wallpapers/import/', portable_import, name='omega-wallpaper-import'),
