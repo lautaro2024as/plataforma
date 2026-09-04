@@ -4,7 +4,7 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'admin/omega/omega_admin.css' %}">
-<link rel="stylesheet" href="{% static 'admin/omega/omega_fix.css' %}?v=5">
+<link rel="stylesheet" href="{% static 'admin/omega/omega_fix.css' %}?v=6">
 <link rel="stylesheet" href="{% static 'admin/omega/omega_lite.css' %}?v=1">
 <style>
 #nav-sidebar,.breadcrumbs{display:none!important}
@@ -13,7 +13,3 @@
 {% endblock %}
 {% block branding %}<h1 id="site-name"><a href="{% url 'admin:index' %}">⚡ SISTEMA_CENTRAL :: OMEGA ⚡</a></h1>{% endblock %}
 {% block nav-global %}{% endblock %}
-{% block extrahead %}
-{{ block.super }}
-<script defer src="{% static 'admin/omega/omega_lite_engine.js' %}?v=1"></script>
-{% endblock %}
