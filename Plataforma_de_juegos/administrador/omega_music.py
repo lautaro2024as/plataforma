@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import json
 import re
+import shutil
 from pathlib import Path
 
 from django.conf import settings
@@ -9,8 +12,10 @@ from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_POST
 
 
-MUSIC_ROOT = Path(settings.BASE_DIR) / "omega_data" / "music"
+# La música vive dentro del proyecto para que pueda viajar junto con él.
+MUSIC_ROOT = Path(settings.BASE_DIR) / "administrador" / "static" / "admin" / "music"
 META_FILE = MUSIC_ROOT / "library.json"
+LEGACY_ROOT = Path(settings.BASE_DIR) / "omega_data" / "music"
 ALLOWED_EXTENSIONS = {".mp3", ".wav", ".ogg", ".m4a", ".aac", ".flac", ".webm"}
 MAX_BYTES = 250 * 1024 * 1024
 SAFE_NAME = re.compile(r"[^a-zA-Z0-9._ -]+")
@@ -77,6 +82,7 @@ def music_upload(request):
     if ext not in ALLOWED_EXTENSIONS:
         return JsonResponse({"detail": "Formato no permitido. Usa MP3, WAV, OGG, M4A, AAC, FLAC o WEBM."}, status=400)
 
+    _ensure_root()
     safe_stem = SAFE_NAME.sub("_", original.stem).strip(" .") or "audio"
     items = _read_library()
     item_id = 1
@@ -104,7 +110,10 @@ def music_stream(request, music_id):
     item = next((x for x in _read_library() if str(x.get("id")) == str(music_id)), None)
     if not item:
         return JsonResponse({"detail": "Tema no encontrado."}, status=404)
-    path = MUSIC_ROOT / item.get("filename", "")
+    path = (MUSIC_ROOT / item.get("filename", "")).resolve()
+    root = MUSIC_ROOT.resolve()
+    if path.parent != root or path.suffix.lower() not in ALLOWED_EXTENSIONS:
+        return JsonResponse({"detail": "Archivo de música inválido."}, status=400)
     if not path.exists() or not path.is_file():
         return JsonResponse({"detail": "Archivo de música no encontrado."}, status=404)
     return FileResponse(path.open("rb"), as_attachment=False, filename=item.get("name", path.name))
@@ -119,9 +128,10 @@ def music_delete(request, music_id):
     item = next((x for x in items if str(x.get("id")) == str(music_id)), None)
     if not item:
         return JsonResponse({"detail": "Tema no encontrado."}, status=404)
-    path = MUSIC_ROOT / item.get("filename", "")
+    path = (MUSIC_ROOT / item.get("filename", "")).resolve()
+    root = MUSIC_ROOT.resolve()
     try:
-        if path.exists():
+        if path.parent == root and path.exists():
             path.unlink()
     except OSError:
         pass
