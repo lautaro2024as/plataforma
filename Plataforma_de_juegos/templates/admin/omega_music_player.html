@@ -1,0 +1,18 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% block title %}OMEGA MUSIC CORE{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin/omega/omega_music.css' %}">{% endblock %}
+{% block extrahead %}{{ block.super }}<script defer src="{% static 'admin/omega/omega_music.js' %}"></script>{% endblock %}
+{% block content %}
+<div class="omega-music-page" data-list-url="{% url 'omega-music-list' %}" data-upload-url="{% url 'omega-music-upload' %}">
+  <header class="music-head"><div><span class="eyebrow">OMEGA // AUDIO SUBSYSTEM</span><h1>MUSIC CORE</h1><p>Biblioteca local del administrador · guardada dentro del proyecto</p></div><button id="music-add" class="music-btn primary">+ AGREGAR MÚSICA</button><input id="music-file" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.webm" multiple hidden></header>
+  <section class="music-shell">
+    <div class="now-playing"><div class="disc" id="music-disc">♫</div><div class="track-info"><span>NOW PLAYING</span><strong id="music-title">Nada reproduciendo</strong><small id="music-meta">Selecciona una pista de tu biblioteca.</small></div><div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+    <div class="player-controls"><button id="music-prev" class="round">◀◀</button><button id="music-play" class="round big">▶</button><button id="music-next" class="round">▶▶</button><label class="volume">VOL <input id="music-volume" type="range" min="0" max="1" step="0.01" value="0.75"></label><button id="music-loop" class="toggle">LOOP OFF</button></div>
+    <div class="progress"><span id="music-current">0:00</span><input id="music-progress" type="range" min="0" max="100" value="0"><span id="music-duration">0:00</span></div>
+    <audio id="music-audio" preload="metadata"></audio>
+    <div class="library-head"><span>LIBRARY</span><b id="music-count">0 TRACKS</b></div>
+    <div id="music-list" class="music-list"><div class="empty">Todavía no hay música cargada.</div></div>
+  </section>
+</div>
+{% endblock %}
