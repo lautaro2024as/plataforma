@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import time
 import zipfile
@@ -128,6 +129,15 @@ def _store_active(item):
     STATE_FILE.write_text(json.dumps({"id": item["id"], "file": item["file"], "name": item["name"], "source": item["source"]}, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def _portable_name(value):
+    raw = str(value or "").strip()
+    if raw.startswith("portable-"):
+        raw = raw[len("portable-"):]
+    if not raw or raw in {".", ".."} or Path(raw).name != raw or ".." in Path(raw).parts:
+        raise ValueError("ID de wallpaper inválido")
+    return raw
+
+
 @staff_member_required
 def wallpaper_panel(request):
     if not request.user.is_superuser:
@@ -236,3 +246,38 @@ def wallpaper_set(request):
     except OSError as exc:
         return JsonResponse({"detail": f"No se pudo iniciar Wallpaper Engine: {exc}"}, status=500)
     return JsonResponse({"ok": True, "file": item["file"], "id": item["id"], "portable": False})
+
+
+@staff_member_required
+@require_POST
+def wallpaper_delete(request):
+    if not request.user.is_superuser:
+        return JsonResponse({"detail": "Forbidden"}, status=403)
+    try:
+        payload = json.loads(request.body or "{}")
+        target_id = payload.get("id", "")
+        name = _portable_name(target_id)
+    except (ValueError, TypeError, json.JSONDecodeError) as exc:
+        return JsonResponse({"detail": str(exc) or "ID de wallpaper inválido."}, status=400)
+
+    target = (PORTABLE_ROOT / name).resolve()
+    root = PORTABLE_ROOT.resolve()
+    if target != root and root not in target.parents:
+        return JsonResponse({"detail": "Ruta de wallpaper inválida."}, status=400)
+    if not target.exists():
+        return JsonResponse({"detail": "El fondo portátil no existe."}, status=404)
+
+    try:
+        shutil.rmtree(target)
+        active = {}
+        try:
+            active = json.loads(STATE_FILE.read_text(encoding="utf-8"))
+        except (OSError, ValueError, TypeError):
+            active = {}
+        if _portable_name(active.get("id", "")) == name if active else False:
+            STATE_FILE.unlink(missing_ok=True)
+    except OSError as exc:
+        return JsonResponse({"detail": f"No se pudo eliminar el fondo: {exc}"}, status=500)
+
+    CACHE["at"] = 0
+    return JsonResponse({"ok": True, "message": "Fondo eliminado correctamente."})
