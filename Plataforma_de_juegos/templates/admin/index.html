@@ -3,11 +3,14 @@
 {% block title %}OMEGA CONTROL DECK | {{ block.super }}{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'admin/omega/omega_dashboard.css' %}?v=10">
+<link rel="stylesheet" href="{% static 'admin/omega/omega_dashboard.css' %}?v=11">
 <link rel="stylesheet" href="{% static 'admin/omega/omega_lite.css' %}?v=1">
 <style>
-.operator-stage{position:relative;overflow:hidden;isolation:isolate}
-.operator-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:block;pointer-events:none;background:#02030a}
+.operator-stage{position:relative;overflow:hidden;isolation:isolate;background:#02030a;border-radius:0 0 5px 5px}
+.operator-video{position:absolute;inset:-3%;width:106%;height:106%;object-fit:cover;object-position:center;z-index:0;display:block;pointer-events:none;background:#02030a;filter:saturate(.88) contrast(1.06) brightness(.78);transform:scale(1.02);transition:filter .5s ease,transform 1s ease}
+.operator-stage::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 34%,rgba(2,3,10,.10) 55%,rgba(2,3,10,.64) 100%),linear-gradient(90deg,rgba(2,3,10,.25),transparent 18%,transparent 82%,rgba(2,3,10,.28)),linear-gradient(180deg,rgba(7,2,18,.28),transparent 18%,transparent 80%,rgba(3,5,14,.36));mix-blend-mode:multiply}
+.operator-stage::after{content:"";position:absolute;inset:1px;z-index:2;pointer-events:none;border:1px solid rgba(18,231,255,.22);box-shadow:inset 0 0 34px rgba(0,0,0,.68),inset 0 0 0 1px rgba(255,49,232,.11),0 0 0 1px rgba(2,4,14,.35);border-radius:0 0 4px 4px}
+.operator-stage:hover .operator-video{filter:saturate(.96) contrast(1.08) brightness(.83);transform:scale(1.035)}
 .operator-stage>.operator-caption,.operator-stage>.operator-controls{position:absolute;z-index:3}
 .operator-stage>.operator-controls{z-index:4}
 </style>
