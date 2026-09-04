@@ -1,45 +1,41 @@
 {% extends "admin/base_site.html" %}
 {% load static %}
-{% block title %}OMEGA WALLPAPER CONTROL{% endblock %}
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin/omega/omega_dashboard.css' %}"><style>
-.wall-wrap{max-width:1100px;margin:25px auto;padding:0 18px}.wall-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,50,230,.4);padding:15px 5px}.wall-head h1{margin:0;color:#ffd9ff;font:700 22px monospace}.wall-head small{color:#17eaff;font:9px monospace}.wall-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:15px}.wall-card{padding:14px;border:1px solid rgba(23,234,255,.25);background:rgba(10,7,25,.8);border-radius:8px}.wall-card h3{margin:0 0 7px;color:#ff32e6;font:700 12px monospace}.wall-card code{display:block;color:#78819b;font:8px monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:10px}.wall-card .wall-use,.wall-card .wall-delete,.wall-import,.wall-preview{width:100%;padding:9px;border:1px solid rgba(255,50,230,.55);background:rgba(42,8,50,.7);color:#fff;font:700 9px monospace;cursor:pointer}.wall-card .wall-use{margin-bottom:7px}.wall-card .wall-delete{border-color:rgba(255,90,130,.65);background:rgba(60,8,28,.72)}.wall-card button:hover,.wall-import:hover,.wall-preview:hover{box-shadow:0 0 15px rgba(255,50,230,.25);border-color:#17eaff}.wall-empty{color:#9298b0;font:10px monospace;padding:40px;text-align:center}.wall-tools{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}@media(max-width:850px){.wall-grid{grid-template-columns:1fr 1fr}}@media(max-width:560px){.wall-grid{grid-template-columns:1fr}.wall-tools{grid-template-columns:1fr}}
-</style>{% endblock %}
+{% block title %}OMEGA WALLPAPER{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/omega/omega_dashboard.css' %}?v=10">
+<style>
+.wall-wrap{max-width:1120px;margin:24px auto;padding:0 18px}.wall-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,49,232,.4);padding:14px 5px}.wall-head h1{margin:0;color:#ffd9ff;font:700 22px monospace;letter-spacing:1px}.wall-head small{color:#12e7ff;font:9px monospace;display:block;margin-top:4px}.wall-toolbar{display:grid;grid-template-columns:1fr auto;gap:10px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);align-items:center}.wall-input{display:none}.wall-button,.wall-card button{padding:11px 14px;border:1px solid rgba(18,231,255,.42);background:rgba(30,7,40,.78);color:#fff;font:700 9px monospace;cursor:pointer;border-radius:3px}.wall-button.primary{border-color:rgba(255,49,232,.65);background:rgba(54,8,54,.8)}.wall-button:hover,.wall-card button:hover{border-color:#12e7ff;box-shadow:0 0 15px rgba(18,231,255,.18)}.wall-status{padding:10px 0;color:#8088a4;font:9px monospace;min-height:18px}.wall-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:15px}.wall-card{padding:14px;border:1px solid rgba(18,231,255,.26);background:linear-gradient(145deg,rgba(15,7,32,.92),rgba(4,10,24,.9));border-radius:5px;position:relative;overflow:hidden}.wall-card.current{border-color:rgba(55,255,163,.72);box-shadow:0 0 18px rgba(55,255,163,.08)}.wall-card h3{margin:0 0 8px;color:#ff31e8;font:700 12px monospace}.wall-card p{margin:0 0 12px;color:#7d86a1;font:8px monospace}.wall-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.wall-delete{border-color:rgba(255,90,130,.65)!important;background:rgba(60,8,28,.72)!important}.wall-empty{color:#9298b0;font:10px monospace;padding:50px;text-align:center;border:1px dashed rgba(18,231,255,.18)}.wall-note{margin-top:12px;color:#67708b;font:8px monospace;line-height:1.6}@media(max-width:760px){.wall-toolbar{grid-template-columns:1fr}.wall-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}
 {% block content %}
-<div class="wall-wrap"><div class="wall-head"><div><h1>OMEGA // WALLPAPER CORE</h1><small>CONTROL EXCLUSIVO DEL SUPERUSUARIO</small></div><a class="mini-link" href="{% url 'admin:index' %}">← VOLVER AL DECK</a></div>
-<div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)"><input id="wall-file" type="file" accept=".zip" hidden><div class="wall-tools"><button id="wall-import" class="wall-import" type="button">IMPORTAR ZIP → GUARDAR EN OMEGA</button><button id="wall-preview" class="wall-preview" type="button">ABRIR PREVIEW DESDE ADMIN</button></div><p style="font:9px monospace;color:#7e879e;margin:8px 0 0">Los fondos portátiles se guardan en <b>omega_data/wallpapers</b>. Los fondos portátiles se pueden eliminar desde cada tarjeta.</p></div>
-{% if engine %}<p style="font:9px monospace;color:#8d95b1">ENGINE DETECTADO: {{ engine }}</p>{% else %}<p style="font:10px monospace;color:#ff7799">Wallpaper Engine no fue encontrado. Los fondos importados quedan guardados en OMEGA.</p>{% endif %}
-<div class="wall-grid" id="wall-grid">{% for w in wallpapers %}<article class="wall-card"><h3>{{ w.name }}</h3><code>{{ w.kind }} // {{ w.id }} // {{ w.source }}</code><button class="wall-use" type="button" data-id="{{ w.id|escapejs }}" data-file="{{ w.file|escapejs }}">{% if w.source == 'portable' %}USAR EN OMEGA{% else %}ACTIVAR CON WALLPAPER ENGINE{% endif %}</button>{% if w.source == 'portable' %}<button class="wall-delete" type="button" data-delete-name="{{ w.id|cut:'portable-'|escapejs }}">ELIMINAR FONDO</button>{% endif %}</article>{% empty %}<div class="wall-empty">No se encontraron wallpapers todavía.</div>{% endfor %}</div></div>
+<div class="wall-wrap">
+  <div class="wall-head"><div><h1>OMEGA // WALLPAPER</h1><small>REPRODUCTOR LOCAL • SIN STEAM • SIN WALLPAPER ENGINE</small></div><a class="mini-link" href="{% url 'admin:index' %}">← VOLVER AL DECK</a></div>
+  <div class="wall-toolbar"><div><input id="wall-file" class="wall-input" type="file" accept="video/mp4,video/webm,.mp4,.webm"><button id="wall-select" class="wall-button primary" type="button">📁 ELEGIR VIDEO DESDE MI PC</button><button id="wall-upload" class="wall-button" type="button" disabled>GUARDAR COMO WALLPAPER DE OMEGA</button></div><button id="wall-refresh" class="wall-button" type="button">RECARGAR</button></div>
+  <div id="wall-status" class="wall-status">El video elegido se copia dentro de <b>administrador/static/admin/wallpapers/</b> y queda incluido en el proyecto.</div>
+  <div class="wall-grid" id="wall-grid">
+    {% for w in items %}
+    <article class="wall-card{% if w.current %} current{% endif %}" data-wall-file="{{ w.name|escapejs }}"><h3>{{ w.name }}</h3><p>{{ w.size|filesizeformat }} {% if w.current %}• ACTIVO{% endif %}</p><div class="wall-card-actions"><button class="wall-use" type="button" data-file="{{ w.name|escapejs }}">{% if w.current %}ACTIVO ✓{% else %}USAR ESTE FONDO{% endif %}</button><button class="wall-delete" type="button" data-file="{{ w.name|escapejs }}">ELIMINAR</button></div></article>
+    {% empty %}
+    <div class="wall-empty">NO HAY VIDEOS GUARDADOS TODAVÍA.<br><br>Elegí un MP4 o WEBM arriba.</div>
+    {% endfor %}
+  </div>
+  <div class="wall-note">El fondo activo se reproduce en bucle dentro del panel central. OMEGA no busca ni ejecuta Wallpaper Engine y no necesita Steam para reproducir estos videos. Para llevar el fondo a otra PC, el archivo queda dentro del proyecto y puede versionarse junto con el resto del código.</div>
+</div>
 <script>
-(()=>{
-const token=(document.cookie.split('; ').find(v=>v.startsWith('csrftoken='))||'').split('=')[1]||'';
-const endpoint='{% url 'omega-wallpaper-set' %}';
-const removeBase='{% url 'omega-wallpaper-remove' name='__NAME__' %}';
-document.querySelectorAll('.wall-use').forEach(b=>b.addEventListener('click',async()=>{
- b.disabled=true;b.textContent='ABRIENDO...';
- try{
-  const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':decodeURIComponent(token)},body:JSON.stringify({id:b.dataset.id,file:b.dataset.file})});
-  const d=await r.json(); if(!r.ok) throw new Error(d.detail||'No se pudo seleccionar el wallpaper.');
-  b.textContent=d.portable?'SELECCIONADO ✓':'ACTIVO ✓';
-  setTimeout(()=>{b.textContent=d.portable?'USAR EN OMEGA':'ACTIVAR CON WALLPAPER ENGINE';b.disabled=false},1800);
- }catch(e){alert(e.message);b.disabled=false;b.textContent='REINTENTAR'}
-}));
-document.querySelectorAll('.wall-delete').forEach(b=>b.addEventListener('click',async()=>{
- if(!confirm('¿Eliminar este fondo de OMEGA? Se borrará completamente del proyecto.')) return;
- b.disabled=true;b.textContent='ELIMINANDO...';
- const name=b.dataset.deleteName;
- const url=removeBase.replace('__NAME__',encodeURIComponent(name));
- try{
-  const r=await fetch(url,{method:'POST',headers:{'X-CSRFToken':decodeURIComponent(token)}});
-  const d=await r.json();
-  if(!r.ok) throw new Error(d.detail||'No se pudo eliminar.');
-  const card=b.closest('.wall-card');
-  if(card) card.remove();
- }catch(e){alert(e.message);b.disabled=false;b.textContent='ELIMINAR FONDO'}
-}));
-const picker=document.getElementById('wall-file');
-document.getElementById('wall-import').onclick=()=>picker.click();
-picker.onchange=async()=>{const f=picker.files[0];if(!f)return;const fd=new FormData();fd.append('file',f);const b=document.getElementById('wall-import');b.disabled=true;b.textContent='IMPORTANDO...';try{const r=await fetch('{% url 'omega-wallpaper-import' %}',{method:'POST',body:fd,headers:{'X-CSRFToken':decodeURIComponent(token)}});const d=await r.json();if(!r.ok)throw new Error(d.detail||'No se pudo importar');alert('Importado en OMEGA: '+d.name);location.reload()}catch(e){alert(e.message)}finally{b.disabled=false;b.textContent='IMPORTAR ZIP → GUARDAR EN OMEGA';picker.value=''}};
-document.getElementById('wall-preview').onclick=()=>window.open('{% url 'omega-wallpaper-preview' %}?t='+Date.now(),'_blank','noopener');
+(() => {
+  const csrf = decodeURIComponent((document.cookie.split('; ').find(v => v.startsWith('csrftoken=')) || '').split('=')[1] || '');
+  const picker = document.getElementById('wall-file');
+  const select = document.getElementById('wall-select');
+  const upload = document.getElementById('wall-upload');
+  const refresh = document.getElementById('wall-refresh');
+  const status = document.getElementById('wall-status');
+  select.addEventListener('click', () => picker.click());
+  picker.addEventListener('change', () => { const file = picker.files[0]; upload.disabled = !file; if (file) status.textContent = `Seleccionado: ${file.name} • ${(file.size / 1024 / 1024).toFixed(1)} MB`; });
+  upload.addEventListener('click', async () => { const file = picker.files[0]; if (!file) return; upload.disabled = true; select.disabled = true; status.textContent = 'GUARDANDO VIDEO DENTRO DEL PROYECTO...'; const fd = new FormData(); fd.append('file', file); try { const response = await fetch('{% url "omega-wallpaper-upload" %}', {method:'POST', body:fd, headers:{'X-CSRFToken':csrf}}); const data = await response.json(); if (!response.ok) throw new Error(data.detail || 'No se pudo guardar el video.'); status.textContent = `GUARDADO: ${data.file}`; window.location.reload(); } catch (error) { status.textContent = error.message; upload.disabled = false; select.disabled = false; } });
+  document.querySelectorAll('.wall-use').forEach(button => button.addEventListener('click', async () => { button.disabled = true; const body = new URLSearchParams(); body.set('filename', button.dataset.file); try { const response = await fetch('{% url "omega-wallpaper-set" %}', {method:'POST', headers:{'X-CSRFToken':csrf,'Content-Type':'application/x-www-form-urlencoded'}, body}); const data = await response.json(); if (!response.ok) throw new Error(data.detail || 'No se pudo activar.'); window.location.reload(); } catch (error) { alert(error.message); button.disabled = false; } }));
+  document.querySelectorAll('.wall-delete').forEach(button => button.addEventListener('click', async () => { if (!confirm(`¿Eliminar ${button.dataset.file} del proyecto?`)) return; button.disabled = true; const body = new URLSearchParams(); body.set('filename', button.dataset.file); try { const response = await fetch('{% url "omega-wallpaper-delete" %}', {method:'POST', headers:{'X-CSRFToken':csrf,'Content-Type':'application/x-www-form-urlencoded'}, body}); const data = await response.json(); if (!response.ok) throw new Error(data.detail || 'No se pudo eliminar.'); button.closest('.wall-card')?.remove(); status.textContent = 'Wallpaper eliminado del proyecto.'; } catch (error) { alert(error.message); button.disabled = false; } }));
+  refresh.addEventListener('click', () => window.location.reload());
 })();
 </script>
 {% endblock %}
