@@ -4,58 +4,54 @@
 {% block extrastyle %}
 {{ block.super }}
 <style>
-.omega-wall-wrap{width:min(1400px,96vw);margin:26px auto;padding:0 18px;font-family:Consolas,"Courier New",monospace;color:#eef1ff;box-sizing:border-box}.omega-wall-head{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:14px 4px;border-bottom:1px solid rgba(255,49,232,.45)}.omega-wall-head h1{margin:0;color:#ffd8ff;font-size:26px;letter-spacing:2px}.omega-wall-head p{margin:6px 0 0;color:#13e7ff;font-size:10px}.omega-wall-actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.omega-wall-form{display:inline}.omega-wall-btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;border:1px solid rgba(18,231,255,.45);background:rgba(13,7,28,.95);color:#fff;padding:10px 18px;font:700 10px monospace;cursor:pointer;text-decoration:none;box-sizing:border-box}.omega-wall-btn:hover{border-color:#ff31e8;box-shadow:0 0 16px rgba(255,49,232,.2)}.omega-wall-file-label{cursor:pointer}.omega-wall-status{margin:8px 0 14px;color:#85ffbd;font-size:10px;min-height:18px}.omega-wall-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.omega-wall-card{border:1px solid rgba(18,231,255,.26);background:linear-gradient(145deg,rgba(15,7,32,.94),rgba(4,10,24,.9));border-radius:7px;overflow:hidden;min-width:0}.omega-wall-card.active{border-color:#ff31e8;box-shadow:0 0 20px rgba(255,49,232,.15)}.omega-wall-preview{height:150px;background:#02030a;overflow:hidden;border-bottom:1px solid rgba(18,231,255,.18)}.omega-wall-preview video{width:100%;height:100%;object-fit:cover;display:block}.omega-wall-preview-empty{height:100%;display:grid;place-items:center;color:#4b5675;font:10px monospace}.omega-wall-card-body{padding:13px}.omega-wall-card h3{margin:0;color:#ff31e8;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.omega-wall-meta{margin:7px 0 11px;color:#7f89a5;font-size:8px}.omega-wall-row{display:grid;grid-template-columns:1fr 110px;gap:7px}.omega-wall-row form{margin:0}.omega-wall-row button{width:100%;padding:10px 8px}.omega-delete{border-color:rgba(255,75,120,.6);background:rgba(60,7,25,.75)}.omega-wall-empty{padding:50px 20px;border:1px dashed rgba(18,231,255,.25);text-align:center;color:#8e98af;font-size:11px;grid-column:1/-1}.omega-wall-note{margin-top:16px;padding:12px;border:1px solid rgba(18,231,255,.14);background:rgba(2,5,16,.5);color:#7f89a5;font-size:9px;line-height:1.6}@media(max-width:1050px){.omega-wall-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:700px){.omega-wall-grid{grid-template-columns:1fr}.omega-wall-row{grid-template-columns:1fr}.omega-wall-head{align-items:flex-start;flex-direction:column}}
+.omega-wall-wrap{width:min(1440px,96vw);margin:22px auto;padding:0 18px;font-family:Consolas,"Courier New",monospace;color:#eef1ff;box-sizing:border-box}.omega-wall-head{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:14px 4px;border-bottom:1px solid rgba(255,49,232,.45)}.omega-wall-head h1{margin:0;color:#ffd8ff;font-size:26px;letter-spacing:2px}.omega-wall-head p{margin:6px 0 0;color:#13e7ff;font-size:10px}.omega-wall-actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.omega-wall-btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;border:1px solid rgba(18,231,255,.45);background:rgba(13,7,28,.95);color:#fff;padding:10px 18px;font:700 10px monospace;cursor:pointer;text-decoration:none;box-sizing:border-box}.omega-wall-btn:hover{border-color:#ff31e8;box-shadow:0 0 16px rgba(255,49,232,.2)}.omega-wall-btn:disabled{opacity:.55;cursor:wait}.omega-wall-status{margin:8px 0 14px;color:#85ffbd;font-size:10px;min-height:18px}.omega-wall-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.omega-wall-card{border:1px solid rgba(18,231,255,.26);background:linear-gradient(145deg,rgba(15,7,32,.94),rgba(4,10,24,.9));border-radius:7px;overflow:hidden;min-width:0}.omega-wall-card.active{border-color:#ff31e8;box-shadow:0 0 20px rgba(255,49,232,.15)}.omega-wall-preview{height:190px;background:#02030a;overflow:hidden;border-bottom:1px solid rgba(18,231,255,.18);position:relative}.omega-wall-preview video{width:100%;height:100%;object-fit:cover;display:block;background:#02030a}.omega-wall-preview video.is-failed{opacity:.15}.omega-wall-preview::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(4,1,12,.05),rgba(4,1,12,.38));box-shadow:inset 0 0 28px rgba(0,0,0,.38)}.omega-wall-badge{position:absolute;left:10px;top:10px;z-index:2;padding:5px 7px;border:1px solid rgba(18,231,255,.45);background:rgba(3,5,16,.78);color:#12e7ff;font:700 8px monospace}.omega-wall-badge.active{color:#85ffbd;border-color:#85ffbd}.omega-wall-preview-label{position:absolute;inset:0;z-index:2;display:grid;place-items:center;color:#68738d;font:9px monospace;pointer-events:none}.omega-wall-card-body{padding:13px}.omega-wall-card h3{margin:0;color:#ff31e8;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.omega-wall-meta{margin:7px 0 11px;color:#7f89a5;font-size:8px}.omega-wall-row{display:grid;grid-template-columns:1fr 110px;gap:7px}.omega-wall-row button{width:100%;padding:10px 8px}.omega-delete{border-color:rgba(255,75,120,.6);background:rgba(60,7,25,.75)}.omega-wall-empty{padding:50px 20px;border:1px dashed rgba(18,231,255,.25);text-align:center;color:#8e98af;font-size:11px;grid-column:1/-1}.omega-wall-note{margin-top:16px;padding:12px;border:1px solid rgba(18,231,255,.14);background:rgba(2,5,16,.5);color:#7f89a5;font-size:9px;line-height:1.6}@media(max-width:1050px){.omega-wall-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:700px){.omega-wall-grid{grid-template-columns:1fr}.omega-wall-row{grid-template-columns:1fr}.omega-wall-head{align-items:flex-start;flex-direction:column}}
 </style>
 {% endblock %}
 {% block content %}
-<div class="omega-wall-wrap">
+<div class="omega-wall-wrap" id="omega-wall-app">
   <div class="omega-wall-head"><div><h1>OMEGA // WALLPAPER CORE</h1><p>VIDEOS LOCALES • SIN STEAM • SIN WALLPAPER ENGINE • GUARDADOS EN EL PROYECTO</p></div><a class="mini-link" href="{% url 'admin:index' %}">← VOLVER AL DECK</a></div>
-
-  <div class="omega-wall-actions">
-    <form class="omega-wall-form" action="{% url 'omega-wallpaper-upload' %}" method="post" enctype="multipart/form-data" id="omega-wall-upload-form">
-      {% csrf_token %}
-      <input id="omega-wall-file" name="files" type="file" accept="video/mp4,video/webm,.mp4,.webm" multiple hidden>
-      <label class="omega-wall-btn omega-wall-file-label" for="omega-wall-file">📁 AGREGAR FONDOS DESDE MI PC</label>
-      <button id="omega-wall-submit" class="omega-wall-btn" type="submit" hidden>GUARDAR</button>
-    </form>
-    <button id="omega-wall-refresh" class="omega-wall-btn" type="button">↻ ACTUALIZAR LISTA</button>
-  </div>
-
+  <div class="omega-wall-actions"><input id="omega-wall-file" type="file" accept="video/mp4,video/webm,.mp4,.webm" multiple hidden><button id="omega-wall-add" class="omega-wall-btn" type="button">📁 AGREGAR FONDOS DESDE MI PC</button><button id="omega-wall-refresh" class="omega-wall-btn" type="button">↻ ACTUALIZAR LISTA</button></div>
   <div id="omega-wall-status" class="omega-wall-status"></div>
-
-  <div class="omega-wall-grid" id="omega-wall-grid">
-    {% for item in items %}
-      <article class="omega-wall-card{% if item.current %} active{% endif %}">
-        <div class="omega-wall-preview">
-          {% if item.current %}<video src="{% url 'omega-wallpaper-video' %}?v={{ forloop.counter }}" muted loop autoplay playsinline controlslist="nodownload noplaybackrate" preload="metadata"></video>{% else %}<div class="omega-wall-preview-empty">VIDEO GUARDADO EN EL PROYECTO</div>{% endif %}
-        </div>
-        <div class="omega-wall-card-body">
-          <h3 title="{{ item.name }}">{{ item.name }}</h3>
-          <div class="omega-wall-meta">{{ item.size|filesizeformat }} {% if item.current %}• ACTIVO ✓{% endif %}</div>
-          <div class="omega-wall-row">
-            {% if item.current %}
-              <button class="omega-wall-btn" type="button" disabled>ACTIVO ✓</button>
-            {% else %}
-              <form action="{% url 'omega-wallpaper-set' %}" method="post">{% csrf_token %}<input type="hidden" name="filename" value="{{ item.name }}"><button class="omega-wall-btn" type="submit">USAR FONDO</button></form>
-            {% endif %}
-            <form action="{% url 'omega-wallpaper-delete' %}" method="post" onsubmit="return confirm('¿Eliminar este fondo del proyecto? El video se borrará permanentemente.');">{% csrf_token %}<input type="hidden" name="filename" value="{{ item.name }}"><button class="omega-wall-btn omega-delete" type="submit">ELIMINAR</button></form>
-          </div>
-        </div>
-      </article>
-    {% empty %}<div class="omega-wall-empty">Todavía no hay fondos. Elegí uno o varios videos MP4/WEBM para guardarlos dentro del proyecto.</div>{% endfor %}
-  </div>
-
-  <div class="omega-wall-note">Cada video seleccionado se copia a <b>administrador/static/admin/wallpapers/</b>. OMEGA conserva varios fondos y solamente uno queda activo. El archivo queda dentro del proyecto para poder trasladar la instalación a otra PC.</div>
+  <div class="omega-wall-grid" id="omega-wall-grid"></div>
+  <div class="omega-wall-note">Cada video se guarda físicamente dentro de <b>administrador/static/admin/wallpapers/</b>. Podés guardar varios fondos. Solo uno queda activo y ese es el que usa el deck central.</div>
 </div>
-
 <script>
 (() => {
-  const file=document.getElementById('omega-wall-file');
-  const form=document.getElementById('omega-wall-upload-form');
-  const status=document.getElementById('omega-wall-status');
-  const submit=document.getElementById('omega-wall-submit');
-  if(file&&form){file.addEventListener('change',()=>{if(!file.files.length)return;status.textContent='GUARDANDO '+file.files.length+' FONDO(S) EN EL PROYECTO...';if(typeof form.requestSubmit==='function')form.requestSubmit(submit);else form.submit();});}
-  document.getElementById('omega-wall-refresh')?.addEventListener('click',()=>location.reload());
+  const grid=document.getElementById('omega-wall-grid'), file=document.getElementById('omega-wall-file'), add=document.getElementById('omega-wall-add'), refreshBtn=document.getElementById('omega-wall-refresh'), status=document.getElementById('omega-wall-status');
+  const listUrl='{% url "omega-wallpaper-list" %}', uploadUrl='{% url "omega-wallpaper-upload" %}', setUrl='{% url "omega-wallpaper-set" %}', deleteUrl='{% url "omega-wallpaper-delete" %}', previewUrl='{% url "omega-wallpaper-preview" %}';
+  const csrf=()=>{const row=document.cookie.split('; ').find(x=>x.trim().startsWith('csrftoken='));return row?decodeURIComponent(row.split('=').slice(1).join('=')):''};
+  const show=(t,e=false)=>{status.textContent=t||'';status.style.color=e?'#ff7898':'#85ffbd'};
+  const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const fmt=b=>{b=Number(b||0);if(!b)return '0 B';const u=['B','KB','MB','GB'];let i=0,n=b;while(n>=1024&&i<u.length-1){n/=1024;i++}return `${n.toFixed(i?1:0)} ${u[i]}`};
+  const preview=name=>`${previewUrl}?filename=${encodeURIComponent(name)}`;
+
+  function render(items){
+    grid.innerHTML='';
+    if(!items.length){grid.innerHTML='<div class="omega-wall-empty">Todavía no hay fondos. Pulsá <b>AGREGAR FONDOS DESDE MI PC</b> y elegí uno o varios videos.</div>';return;}
+    items.forEach(item=>{
+      const card=document.createElement('article'); card.className='omega-wall-card'+(item.current?' active':'');
+      card.innerHTML=`<div class="omega-wall-preview"><span class="omega-wall-badge ${item.current?'active':''}">${item.current?'ACTIVO ✓':'GUARDADO'}</span><video muted loop playsinline preload="metadata" src="${preview(item.name)}"></video><span class="omega-wall-preview-label">CARGANDO PREVIEW...</span></div><div class="omega-wall-card-body"><h3 title="${esc(item.name)}">${esc(item.name)}</h3><div class="omega-wall-meta">${fmt(item.size)} • ${item.current?'ACTIVO':'DISPONIBLE'}</div><div class="omega-wall-row"><button class="omega-wall-btn omega-use" type="button" ${item.current?'disabled':''}>${item.current?'ACTIVO ✓':'USAR FONDO'}</button><button class="omega-wall-btn omega-delete" type="button">ELIMINAR</button></div></div>`;
+      const vid=card.querySelector('video'), label=card.querySelector('.omega-wall-preview-label');
+      vid.addEventListener('loadeddata',()=>{label.style.display='none';vid.currentTime=0.1;});
+      vid.addEventListener('mouseenter',()=>vid.play().catch(()=>{}));
+      vid.addEventListener('mouseleave',()=>{vid.pause();});
+      vid.addEventListener('error',()=>{vid.classList.add('is-failed');label.textContent='PREVIEW NO DISPONIBLE';});
+      card.querySelector('.omega-use').addEventListener('click',async()=>{
+        const btn=card.querySelector('.omega-use'); btn.disabled=true; btn.textContent='ACTIVANDO...';
+        try{const body=new URLSearchParams({filename:item.name});const r=await fetch(setUrl,{method:'POST',credentials:'same-origin',headers:{'X-CSRFToken':csrf(),'X-Requested-With':'XMLHttpRequest'},body});const d=await r.json();if(!r.ok)throw new Error(d.detail||'No se pudo activar.');show('FONDO ACTIVO: '+d.file);await refresh();}catch(e){show(e.message,true);btn.disabled=false;btn.textContent='REINTENTAR'}
+      });
+      card.querySelector('.omega-delete').addEventListener('click',async()=>{
+        if(!confirm(`¿Eliminar "${item.name}" del proyecto?`))return;
+        const btn=card.querySelector('.omega-delete');btn.disabled=true;btn.textContent='BORRANDO...';
+        try{const body=new URLSearchParams({filename:item.name});const r=await fetch(deleteUrl,{method:'POST',credentials:'same-origin',headers:{'X-CSRFToken':csrf(),'X-Requested-With':'XMLHttpRequest'},body});const d=await r.json();if(!r.ok)throw new Error(d.detail||'No se pudo eliminar.');show('FONDO ELIMINADO');await refresh();}catch(e){show(e.message,true);btn.disabled=false;btn.textContent='ELIMINAR'}
+      });
+      grid.appendChild(card);
+    });
+  }
+  async function refresh(){try{const r=await fetch(listUrl,{credentials:'same-origin',cache:'no-store'});const d=await r.json();if(!r.ok)throw new Error(d.detail||'No se pudo leer la biblioteca.');render((d.items||[]));}catch(e){show(e.message,true)}}
+  add.addEventListener('click',()=>file.click()); refreshBtn.addEventListener('click',refresh);
+  file.addEventListener('change',async()=>{const files=[...file.files];if(!files.length)return;add.disabled=true;show(`GUARDANDO ${files.length} FONDO(S) EN EL PROYECTO...`);try{for(const f of files){const fd=new FormData();fd.append('files',f);const r=await fetch(uploadUrl,{method:'POST',credentials:'same-origin',headers:{'X-CSRFToken':csrf(),'X-Requested-With':'XMLHttpRequest'},body:fd});const d=await r.json();if(!r.ok)throw new Error(d.detail||(d.errors||[]).join(' • ')||`No se pudo guardar ${f.name}.`)}show('FONDOS GUARDADOS CORRECTAMENTE');await refresh()}catch(e){show(e.message,true)}finally{add.disabled=false;file.value=''}});
+  refresh();
 })();
 </script>
 {% endblock %}
