@@ -3,8 +3,14 @@
 {% block title %}OMEGA CONTROL DECK | {{ block.super }}{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'admin/omega/omega_dashboard.css' %}?v=10">
+<link rel="stylesheet" href="{% static 'admin/omega/omega_dashboard.css' %}?v=9">
 <link rel="stylesheet" href="{% static 'admin/omega/omega_lite.css' %}?v=1">
+<style>
+.operator-stage{position:relative;overflow:hidden;isolation:isolate}
+.operator-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:block;pointer-events:none;background:#02030a}
+.operator-stage>.operator-caption,.operator-stage>.operator-controls{position:absolute;z-index:3}
+.operator-stage>.operator-controls{z-index:4}
+</style>
 {% endblock %}
 {% block content %}
 <div class="omega-deck" id="omega-deck" data-stats-url="{% url 'omega-system-stats' %}">
@@ -22,40 +28,17 @@
 </aside>
 <main class="omega-center">
 <section class="stats-row"><article class="omega-stat"><span>TOTAL JUEGOS</span><strong id="stat-games">—</strong><small>CATÁLOGO</small></article><article class="omega-stat"><span>PUBLICADOS</span><strong id="stat-published">—</strong><small>LIVE</small></article><article class="omega-stat"><span>ALERTAS</span><strong id="stat-malware">—</strong><small>NO RESUELTAS</small></article><article class="omega-stat"><span>LICENCIAS</span><strong id="stat-licenses">—</strong><small>ACTIVAS</small></article></section>
-<section class="omega-panel operator-panel"><div class="panel-head"><div><span class="accent">OPERATOR // OMEGA VISUAL CORE</span><small>VIDEO DE FONDO CONFINADO // MUSIC CORE</small></div><span class="status-chip">LIVE</span></div><div class="operator-stage" id="omega-stage"><video class="operator-video" autoplay loop muted playsinline preload="auto" aria-hidden="true"><source src="{% static 'admin/wallpapers/omega_background.mp4' %}" type="video/mp4"></video><div class="operator-caption"><b>OMEGA VISUAL CORE</b><span>WALLPAPER + FX</span></div>{% if user.is_superuser %}<div class="operator-controls"><a class="omega-wallpaper-link" href="{% url 'omega-wallpapers' %}">WALLPAPERS</a><a class="omega-wallpaper-link" href="{% url 'omega-music-player' %}">♫ MUSIC CORE</a></div>{% else %}<div class="operator-controls">CONTROL DE FONDO: BLOQUEADO</div>{% endif %}</div><div class="operator-footer"><span>OMEGA // READY</span><span id="pc-host">HOST: —</span><span id="net-traffic">NET: —</span></div></section>
-<section class="omega-panel chart-panel"><div class="panel-head"><div><span class="accent cyan-text">ACTIVIDAD EN TIEMPO REAL</span><small>LECTURA DE PC LOCAL + BASE DE DATOS</small></div><span class="status-chip">AUTO REFRESH 2S</span></div><div class="chart-grid"><div class="line-chart"><svg viewBox="0 0 900 220" preserveAspectRatio="none"><polyline id="cpu-line" fill="none"></polyline><polyline id="ram-line" fill="none"></polyline></svg></div><div class="chart-legend"><span><i class="dot cpu-dot"></i>CPU <b id="legend-cpu">—</b></span><span><i class="dot ram-dot"></i>RAM <b id="legend-ram">—</b></span><span><i class="dot db-dot"></i>DB <b id="legend-db">—</b></span></div></div></section>
+<section class="omega-panel operator-panel"><div class="panel-head"><div><span class="accent">OPERATOR // OMEGA VISUAL CORE</span><small>LOCAL WALLPAPER PLAYER // SIN STEAM</small></div><span class="status-chip">LIVE</span></div><div class="operator-stage" id="omega-stage">
+<video id="omega-wallpaper-video" class="operator-video" autoplay loop muted playsinline preload="auto" aria-hidden="true">
+    <source src="{% url 'omega-wallpaper-video' %}" type="video/mp4">
+</video>
+<div class="operator-caption"><b>OMEGA VISUAL CORE</b><span>LOCAL WALLPAPER + LOOP</span></div>{% if user.is_superuser %}<div class="operator-controls"><a class="omega-wallpaper-link" href="{% url 'omega-wallpapers' %}">WALLPAPER</a><a class="omega-wallpaper-link" href="{% url 'omega-music-player' %}">♫ MUSIC CORE</a></div>{% else %}<div class="operator-controls">CONTROL DE FONDO: BLOQUEADO</div>{% endif %}</div><div class="operator-footer"><span>OMEGA // READY</span><span id="pc-host">HOST: —</span><span id="net-traffic">NET: —</span></div></section>
+<section class="omega-panel chart-panel"><div class="panel-head"><div><span class="accent cyan-text">ACTIVIDAD EN TIEMPO REAL</span><small>LECTURA DE PC LOCAL + BASE DE DATOS</small></div><span class="status-chip">AUTO REFRESH 2S</span></div><div class="chart-grid"><div class="line-chart"><svg viewBox="0 0 900 220" preserveAspectRatio="none"><polyline id="cpu-line" fill="none"/><polyline id="ram-line" fill="none"/></svg></div><div class="chart-legend"><span><i class="dot cpu-dot"></i>CPU <b id="legend-cpu">—</b></span><span><i class="dot ram-dot"></i>RAM <b id="legend-ram">—</b></span><span><i class="dot db-dot"></i>DB <b id="legend-db">—</b></span></div></div></section>
 </main>
 <aside class="omega-right">
 <section class="omega-panel recent-panel"><div class="panel-head"><div><span class="accent">JUEGOS RECIENTES</span><small>CATÁLOGO DINÁMICO</small></div><a href="{% url 'admin:administrador_juego_changelist' %}" class="mini-link">VER TODOS →</a></div><div class="game-list"><a href="{% url 'admin:administrador_juego_changelist' %}"><span>🎮 Catálogo de juegos</span><b>OPEN</b></a><a href="{% url 'admin:administrador_juego_add' %}"><span>✦ Agregar nuevo juego</span><b>ADD</b></a><a href="{% url 'admin:administrador_licenciacompra_changelist' %}"><span>▣ Licencias y compras</span><b>DATA</b></a></div></section>
-<section class="omega-panel quick-panel"><div class="panel-head"><div><span class="accent">ACCIONES RÁPIDAS</span><small>DJANGO SHORTCUTS</small></div></div><div class="quick-grid"><a href="{% url 'admin:administrador_juego_add' %}"><span>🎮</span>Agregar juego</a><a href="{% url 'admin:administrador_perfilusuario_add' %}"><span>♙</span>Nuevo usuario</a><a href="{% url 'admin:administrador_alertamalware_changelist' %}"><span>⚠</span>Ver reportes</a><a href="{% url 'admin:administrador_licenciacompra_changelist' %}"><span>▣</span>Licencias</a>{% if user.is_superuser %}<a href="{% url 'omega-wallpapers' %}"><span>🖼</span>Wallpapers</a><a href="{% url 'omega-music-player' %}"><span>♫</span>Music Core</a>{% endif %}</div></section>
-<section class="omega-panel activity-panel"><div class="panel-head"><div><span class="accent cyan-text">REGISTRO DE ACTIVIDAD</span><small>LIVE FEED</small></div></div><div id="omega-feed" class="feed"><div><b>NOW</b><span>Sesión del administrador activa</span><i>✓</i></div><div><b>RENDER</b><span>Esperando wallpaper portátil...</span><i>…</i></div></div></section>
+<section class="omega-panel quick-panel"><div class="panel-head"><div><span class="accent">ACCIONES RÁPIDAS</span><small>DJANGO SHORTCUTS</small></div></div><div class="quick-grid"><a href="{% url 'admin:administrador_juego_add' %}"><span>🎮</span>Agregar juego</a><a href="{% url 'admin:administrador_perfilusuario_add' %}"><span>♙</span>Nuevo usuario</a><a href="{% url 'admin:administrador_alertamalware_changelist' %}"><span>⚠</span>Ver reportes</a><a href="{% url 'admin:administrador_licenciacompra_changelist' %}"><span>▣</span>Licencias</a>{% if user.is_superuser %}<a href="{% url 'omega-wallpapers' %}"><span>🖼</span>Wallpaper</a><a href="{% url 'omega-music-player' %}"><span>♫</span>Music Core</a>{% endif %}</div></section>
+<section class="omega-panel activity-panel"><div class="panel-head"><div><span class="accent cyan-text">REGISTRO DE ACTIVIDAD</span><small>LIVE FEED</small></div></div><div id="omega-feed" class="feed"><div><b>NOW</b><span>Sesión del administrador activa</span><i>✓</i></div><div><b>WALL</b><span>Reproductor local listo</span><i>✓</i></div></div></section>
 <section class="omega-panel models-panel"><div class="panel-head"><div><span class="accent">MODELOS DISPONIBLES</span><small>DJANGO REGISTRY</small></div></div><div class="model-list">{% for app in app_list %}{% for model in app.models %}<a href="{{ model.admin_url }}"><span>{{ model.name }}</span><b>OPEN</b></a>{% endfor %}{% endfor %}</div></section>
-</aside></div><footer class="omega-footer"><span>SISTEMA CENTRAL OMEGA // CONTROL TOTAL DEL SISTEMA</span><span>PC: <b id="footer-status">HEALTHY</b></span><span>DJANGO ADMIN ENVIRONMENT</span></footer>
-
-<audio id="admin-audio-player" loop preload="auto"><source src="{% static 'admin/music/cancion.mp3' %}" type="audio/mpeg"></audio>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const audio = document.getElementById('admin-audio-player');
-    if (!audio) return;
-    const savedTime = localStorage.getItem('admin_music_time');
-    const isPlaying = localStorage.getItem('admin_music_playing') === 'true';
-    if (savedTime) {
-        const t = parseFloat(savedTime);
-        if (Number.isFinite(t)) audio.currentTime = t;
-    }
-    if (isPlaying) {
-        audio.play().catch(() => {
-            document.addEventListener('click', () => audio.play().catch(() => {}), { once: true });
-        });
-    }
-    audio.addEventListener('timeupdate', () => {
-        localStorage.setItem('admin_music_time', String(audio.currentTime));
-    });
-    window.addEventListener('beforeunload', () => {
-        localStorage.setItem('admin_music_playing', String(!audio.paused));
-        localStorage.setItem('admin_music_time', String(audio.currentTime));
-    });
-});
-</script>
-</div>
+</aside></div><footer class="omega-footer"><span>SISTEMA CENTRAL OMEGA // CONTROL TOTAL DEL SISTEMA</span><span>PC: <b id="footer-status">HEALTHY</b></span><span>DJANGO ADMIN ENVIRONMENT</span></footer></div>
 {% endblock %}
