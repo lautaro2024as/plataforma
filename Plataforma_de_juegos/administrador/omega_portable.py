@@ -6,6 +6,7 @@ import shutil
 import time
 import zipfile
 from pathlib import Path
+from urllib.parse import unquote
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
@@ -21,6 +22,15 @@ STATE_FILE = Path(settings.BASE_DIR) / "omega_data" / "wallpaper_state.json"
 def _slug(value: str) -> str:
     value = re.sub(r"[^A-Za-z0-9._-]+", "_", Path(value).stem).strip("._")
     return value or "wallpaper"
+
+
+def _normalize_id(value: object) -> str:
+    raw = unquote(str(value or "")).strip()
+    while raw.startswith("portable-"):
+        raw = raw[len("portable-"):]
+    if not raw or raw in {".", ".."} or Path(raw).name != raw or ".." in Path(raw).parts:
+        raise ValueError("ID de wallpaper inválido")
+    return raw
 
 
 def _safe_extract(zf: zipfile.ZipFile, destination: Path) -> None:
@@ -93,24 +103,18 @@ def _items():
     for bundle in sorted(PROJECT_BUNDLES.glob("*.zip")):
         folder = RUNTIME_ROOT / bundle.stem
         project = folder / "project.json"
+        if not project.exists():
+            project = next(folder.rglob("project.json"), None) if folder.exists() else None
         name = bundle.stem
         kind = "scene"
-        if project.exists():
+        if project:
             try:
                 data = json.loads(project.read_text(encoding="utf-8", errors="ignore"))
                 name = data.get("title") or name
                 kind = data.get("type") or "scene"
             except (OSError, ValueError):
                 pass
-        if project.exists():
-            items.append({
-                "id": f"portable-{bundle.stem}",
-                "name": name,
-                "file": str(project),
-                "kind": kind,
-                "source": "portable",
-                "bundle": str(bundle),
-            })
+            items.append({"id": f"portable-{bundle.stem}", "name": name, "file": str(project), "kind": kind, "source": "portable", "bundle": str(bundle)})
     return items
 
 
@@ -123,20 +127,11 @@ def _active():
 
 def _store_active(item: dict) -> None:
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    STATE_FILE.write_text(json.dumps({
-        "id": item["id"],
-        "file": item["file"],
-        "name": item["name"],
-        "source": item["source"],
-    }, ensure_ascii=False, indent=2), encoding="utf-8")
+    STATE_FILE.write_text(json.dumps({"id": item["id"], "file": item["file"], "name": item["name"], "source": item["source"]}, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def _runtime_folder_from_id(wallpaper_id: str) -> Path:
-    if not wallpaper_id.startswith("portable-"):
-        raise ValueError("ID no portátil")
-    name = wallpaper_id[len("portable-"):]
-    if not name or Path(name).name != name or ".." in Path(name).parts:
-        raise ValueError("ID de wallpaper inválido")
+def _runtime_folder_from_id(wallpaper_id: object) -> Path:
+    name = _normalize_id(wallpaper_id)
     folder = (RUNTIME_ROOT / name).resolve()
     root = RUNTIME_ROOT.resolve()
     if folder != root and root not in folder.parents:
@@ -148,10 +143,7 @@ def _runtime_folder_from_id(wallpaper_id: str) -> Path:
 def panel(request):
     if not request.user.is_superuser:
         return JsonResponse({"detail": "Solo el superusuario puede controlar wallpapers."}, status=403)
-    return render(request, "admin/omega_portable_wallpaper.html", {
-        "wallpapers": _items(),
-        "active": _active(),
-    })
+    return render(request, "admin/omega_portable_wallpaper.html", {"wallpapers": _items(), "active": _active()})
 
 
 @staff_member_required
@@ -172,7 +164,6 @@ def import_bundle(request):
         return JsonResponse({"detail": "Seleccioná un ZIP de Wallpaper Engine."}, status=400)
     if uploaded.size > 500 * 1024 * 1024:
         return JsonResponse({"detail": "El ZIP supera 500 MB."}, status=400)
-
     PROJECT_BUNDLES.mkdir(parents=True, exist_ok=True)
     RUNTIME_ROOT.mkdir(parents=True, exist_ok=True)
     stem = _slug(uploaded.name)
@@ -211,32 +202,58 @@ def activate(request):
     try:
         payload = json.loads(request.body or "{}")
         wallpaper_id = str(payload.get("id", ""))
+        name = _normalize_id(wallpaper_id)
         folder = _runtime_folder_from_id(wallpaper_id)
     except (ValueError, TypeError, json.JSONDecodeError) as exc:
         return JsonResponse({"detail": str(exc) or "ID inválido."}, status=400)
-
     if not folder.is_dir():
-        bundle = PROJECT_BUNDLES / f"{wallpaper_id[len('portable-'):]}.zip"
+        bundle = PROJECT_BUNDLES / f"{name}.zip"
         if not bundle.exists():
             return JsonResponse({"detail": "El bundle no existe dentro del proyecto."}, status=404)
         try:
             _extract_bundle(bundle, folder)
         except (OSError, zipfile.BadZipFile, ValueError) as exc:
             return JsonResponse({"detail": f"No se pudo preparar el wallpaper: {exc}"}, status=400)
-
     project = folder / "project.json"
     if not project.exists():
+        project = next(folder.rglob("project.json"), None)
+    if not project:
         return JsonResponse({"detail": "El wallpaper no contiene project.json."}, status=400)
-
-    item = next((x for x in _items() if x["id"] == wallpaper_id), None)
+    item = next((x for x in _items() if x["id"] == f"portable-{name}"), None)
     if item is None:
-        item = {"id": wallpaper_id, "name": folder.name, "file": str(project), "kind": "scene", "source": "portable", "bundle": str(PROJECT_BUNDLES / f"{folder.name}.zip")}
-    try:
-        bundle = _bundle_runtime(folder)
-    except OSError as exc:
-        return JsonResponse({"detail": f"No se pudo crear el bundle: {exc}"}, status=500)
+        item = {"id": f"portable-{name}", "name": folder.name, "file": str(project), "kind": "scene", "source": "portable", "bundle": str(PROJECT_BUNDLES / f"{name}.zip")}
     _store_active(item)
-    return JsonResponse({"ok": True, "id": wallpaper_id, "portable": True, "bundle": str(bundle), "message": "Wallpaper activo y guardado dentro del proyecto."})
+    return JsonResponse({"ok": True, "id": item["id"], "portable": True, "bundle": item["bundle"], "message": "Wallpaper activo."})
+
+
+@staff_member_required
+@require_POST
+def delete_bundle(request):
+    if not request.user.is_superuser:
+        return JsonResponse({"detail": "Forbidden"}, status=403)
+    try:
+        payload = json.loads(request.body or "{}")
+        name = _normalize_id(payload.get("id", ""))
+    except (ValueError, TypeError, json.JSONDecodeError) as exc:
+        return JsonResponse({"detail": str(exc) or "ID inválido."}, status=400)
+    bundle = PROJECT_BUNDLES / f"{name}.zip"
+    folder = RUNTIME_ROOT / name
+    if not bundle.exists() and not folder.exists():
+        return JsonResponse({"detail": "Ese wallpaper ya no existe."}, status=404)
+    try:
+        shutil.rmtree(folder, ignore_errors=True)
+        bundle.unlink(missing_ok=True)
+        active = _active()
+        if active:
+            try:
+                active_name = _normalize_id(active.get("id", ""))
+            except ValueError:
+                active_name = ""
+            if active_name == name:
+                STATE_FILE.unlink(missing_ok=True)
+    except OSError as exc:
+        return JsonResponse({"detail": f"No se pudo eliminar: {exc}"}, status=500)
+    return JsonResponse({"ok": True, "id": f"portable-{name}", "message": "Wallpaper eliminado del proyecto y del runtime."})
 
 
 @staff_member_required
@@ -252,7 +269,7 @@ def preview(request):
     if folder is None or not folder.exists():
         active = _active() or {}
         try:
-            folder = _runtime_folder_from_id(str(active.get("id", "")))
+            folder = _runtime_folder_from_id(active.get("id", "")) if active else None
         except ValueError:
             folder = None
     if folder is None:
