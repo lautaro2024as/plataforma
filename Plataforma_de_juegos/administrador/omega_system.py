@@ -4,10 +4,10 @@ import time
 
 import psutil
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import JsonResponse
 from django.db import connection
+from django.http import JsonResponse
 
-_BOOT = time.time()
+from .models import AlertaMalware, Juego, LicenciaCompra, PerfilUsuario
 
 
 def _fmt_uptime(seconds: float) -> str:
@@ -32,14 +32,20 @@ def _ping_db_ms() -> float | None:
 
 
 @staff_member_required
-
 def system_stats(request):
+    partitions = psutil.disk_partitions(all=False)
+    disk_mount = partitions[0].mountpoint if partitions else "/"
     cpu = psutil.cpu_percent(interval=0.08)
     vm = psutil.virtual_memory()
-    disk = psutil.disk_usage(psutil.disk_partitions(all=False)[0].mountpoint if psutil.disk_partitions(all=False) else "/")
+    disk = psutil.disk_usage(disk_mount)
     net = psutil.net_io_counters()
     db_ms = _ping_db_ms()
-    boot_time = psutil.boot_time()
+
+    games = Juego.objects.count()
+    published = Juego.objects.filter(estado="publicado").count()
+    malware = AlertaMalware.objects.filter(resuelta=False).count()
+    users = PerfilUsuario.objects.count()
+    licenses = LicenciaCompra.objects.count()
 
     return JsonResponse(
         {
@@ -52,11 +58,15 @@ def system_stats(request):
             "disk_total_gb": round(disk.total / (1024**3), 1),
             "net_sent_mb": round(net.bytes_sent / (1024**2), 1),
             "net_recv_mb": round(net.bytes_recv / (1024**2), 1),
-            "uptime": _fmt_uptime(time.time() - boot_time),
+            "uptime": _fmt_uptime(time.time() - psutil.boot_time()),
             "os": f"{platform.system()} {platform.release()}",
             "hostname": socket.gethostname(),
             "db": "CONNECTED" if db_ms is not None else "OFFLINE",
             "db_ms": db_ms,
-            "django_ms": round((time.time() - _BOOT) * 1000, 1),
+            "games": games,
+            "published": published,
+            "malware": malware,
+            "users": users,
+            "licenses": licenses,
         }
     )
