@@ -7,14 +7,14 @@ from . import omega_portable as core
 
 
 def _migrate_runtime_to_project() -> None:
-    """Promote wallpapers already imported by the previous OMEGA engine into project bundles."""
+    """Promote old runtime wallpapers into portable project bundles."""
     core.PROJECT_BUNDLES.mkdir(parents=True, exist_ok=True)
     core.RUNTIME_ROOT.mkdir(parents=True, exist_ok=True)
     for folder in core.RUNTIME_ROOT.iterdir():
         if not folder.is_dir():
             continue
-        project = folder / "project.json"
         bundle = core.PROJECT_BUNDLES / f"{folder.name}.zip"
+        project = folder / "project.json"
         if project.exists() and not bundle.exists():
             try:
                 core._bundle_runtime(folder)
@@ -47,6 +47,12 @@ def import_bundle(request):
 def activate(request):
     _migrate_runtime_to_project()
     return core.activate(request)
+
+
+@staff_member_required
+def delete_bundle(request):
+    _migrate_runtime_to_project()
+    return core.delete_bundle(request)
 
 
 @staff_member_required
