@@ -3,7 +3,7 @@
 {% block title %}OMEGA CONTROL DECK | {{ block.super }}{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'admin/omega/omega_dashboard.css' %}?v=9">
+<link rel="stylesheet" href="{% static 'admin/omega/omega_dashboard.css' %}?v=10">
 <link rel="stylesheet" href="{% static 'admin/omega/omega_lite.css' %}?v=1">
 <style>
 .operator-stage{position:relative;overflow:hidden;isolation:isolate}
@@ -29,9 +29,7 @@
 <main class="omega-center">
 <section class="stats-row"><article class="omega-stat"><span>TOTAL JUEGOS</span><strong id="stat-games">—</strong><small>CATÁLOGO</small></article><article class="omega-stat"><span>PUBLICADOS</span><strong id="stat-published">—</strong><small>LIVE</small></article><article class="omega-stat"><span>ALERTAS</span><strong id="stat-malware">—</strong><small>NO RESUELTAS</small></article><article class="omega-stat"><span>LICENCIAS</span><strong id="stat-licenses">—</strong><small>ACTIVAS</small></article></section>
 <section class="omega-panel operator-panel"><div class="panel-head"><div><span class="accent">OPERATOR // OMEGA VISUAL CORE</span><small>LOCAL WALLPAPER PLAYER // SIN STEAM</small></div><span class="status-chip">LIVE</span></div><div class="operator-stage" id="omega-stage">
-<video id="omega-wallpaper-video" class="operator-video" autoplay loop muted playsinline preload="auto" aria-hidden="true">
-    <source src="{% url 'omega-wallpaper-video' %}" type="video/mp4">
-</video>
+<video id="omega-wallpaper-video" class="operator-video" src="{% url 'omega-wallpaper-video' %}" autoplay loop muted playsinline preload="auto" aria-hidden="true"></video>
 <div class="operator-caption"><b>OMEGA VISUAL CORE</b><span>LOCAL WALLPAPER + LOOP</span></div>{% if user.is_superuser %}<div class="operator-controls"><a class="omega-wallpaper-link" href="{% url 'omega-wallpapers' %}">WALLPAPER</a><a class="omega-wallpaper-link" href="{% url 'omega-music-player' %}">♫ MUSIC CORE</a></div>{% else %}<div class="operator-controls">CONTROL DE FONDO: BLOQUEADO</div>{% endif %}</div><div class="operator-footer"><span>OMEGA // READY</span><span id="pc-host">HOST: —</span><span id="net-traffic">NET: —</span></div></section>
 <section class="omega-panel chart-panel"><div class="panel-head"><div><span class="accent cyan-text">ACTIVIDAD EN TIEMPO REAL</span><small>LECTURA DE PC LOCAL + BASE DE DATOS</small></div><span class="status-chip">AUTO REFRESH 2S</span></div><div class="chart-grid"><div class="line-chart"><svg viewBox="0 0 900 220" preserveAspectRatio="none"><polyline id="cpu-line" fill="none"/><polyline id="ram-line" fill="none"/></svg></div><div class="chart-legend"><span><i class="dot cpu-dot"></i>CPU <b id="legend-cpu">—</b></span><span><i class="dot ram-dot"></i>RAM <b id="legend-ram">—</b></span><span><i class="dot db-dot"></i>DB <b id="legend-db">—</b></span></div></div></section>
 </main>
