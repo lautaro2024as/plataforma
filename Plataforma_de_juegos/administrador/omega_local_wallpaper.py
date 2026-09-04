@@ -48,9 +48,13 @@ def _find_existing_name(value: object) -> str | None:
     wanted = Path(raw).name
     if not wanted:
         return None
-    for item in WALLPAPER_DIR.iterdir() if WALLPAPER_DIR.exists() else ():
-        if item.is_file() and item.suffix.lower() in ALLOWED_EXTENSIONS and item.name == wanted:
-            return item.name
+    try:
+        entries = WALLPAPER_DIR.iterdir() if WALLPAPER_DIR.exists() else ()
+        for item in entries:
+            if item.is_file() and item.suffix.lower() in ALLOWED_EXTENSIONS and item.name == wanted:
+                return item.name
+    except OSError:
+        return None
     return None
 
 
@@ -62,11 +66,12 @@ def _current_path() -> Path | None:
 def _items() -> list[dict]:
     WALLPAPER_DIR.mkdir(parents=True, exist_ok=True)
     current = _current_path()
-    return [
-        {"name": p.name, "current": bool(current and p.name == current.name), "size": p.stat().st_size}
-        for p in sorted(WALLPAPER_DIR.iterdir(), key=lambda p: p.name.lower())
-        if p.is_file() and p.name != STATE_FILE.name and p.suffix.lower() in ALLOWED_EXTENSIONS
-    ]
+    items = []
+    for path in sorted(WALLPAPER_DIR.iterdir(), key=lambda p: p.name.lower()):
+        if not path.is_file() or path.name == STATE_FILE.name or path.suffix.lower() not in ALLOWED_EXTENSIONS:
+            continue
+        items.append({"name": path.name, "current": bool(current and path.name == current.name), "size": path.stat().st_size})
+    return items
 
 
 def _wants_json(request):
@@ -93,7 +98,7 @@ def listing(request):
     if not _is_superuser(request):
         return JsonResponse({"detail": "Forbidden"}, status=403)
     current = _current_path()
-    return JsonResponse({"items": _items(), "current": current.name if current else None, "video_url": "/admin/omega/wallpapers/video/" if current else None})
+    return JsonResponse({"items": _items(), "current": current.name if current else None})
 
 
 @staff_member_required
@@ -117,10 +122,10 @@ def upload(request):
             errors.append(f"{uploaded.name}: {exc}")
             continue
         target = WALLPAPER_DIR / filename
-        i = 2
+        index = 2
         while target.exists():
-            target = WALLPAPER_DIR / f"{Path(filename).stem}_{i}{Path(filename).suffix}"
-            i += 1
+            target = WALLPAPER_DIR / f"{Path(filename).stem}_{index}{Path(filename).suffix}"
+            index += 1
         temp = WALLPAPER_DIR / f".{target.name}.uploading"
         try:
             with temp.open("wb") as output:
@@ -134,7 +139,11 @@ def upload(request):
 
     if saved and not _current_path():
         _write_state(saved[0])
-    return _json_or_redirect(request, {"ok": bool(saved), "saved": saved, "errors": errors, "message": "Videos guardados dentro del proyecto."}, 201 if saved else 400)
+    return _json_or_redirect(
+        request,
+        {"ok": bool(saved), "saved": saved, "errors": errors, "message": "Videos guardados dentro del proyecto."},
+        201 if saved else 400,
+    )
 
 
 @staff_member_required
@@ -169,11 +178,26 @@ def delete(request):
         was_current = bool(_current_path() and _current_path().name == name)
         path.unlink()
         if was_current:
-            remaining = [item["name"] for item in _items() if item["name"] != name]
+            remaining = [item["name"] for item in _items()]
             _write_state(remaining[0] if remaining else None)
     except OSError as exc:
         return JsonResponse({"detail": f"No se pudo eliminar: {exc}"}, status=500)
     return _json_or_redirect(request, {"ok": True, "message": "Wallpaper eliminado del proyecto."})
+
+
+@staff_member_required
+@require_GET
+def preview(request):
+    if not _is_superuser(request):
+        return JsonResponse({"detail": "Forbidden"}, status=403)
+    name = _find_existing_name(request.GET.get("filename") or "")
+    if not name:
+        return JsonResponse({"detail": "Wallpaper no encontrado."}, status=404)
+    path = WALLPAPER_DIR / name
+    response = FileResponse(path.open("rb"), content_type="video/mp4" if path.suffix.lower() == ".mp4" else "video/webm")
+    response["Cache-Control"] = "private, max-age=120"
+    response["Accept-Ranges"] = "bytes"
+    return response
 
 
 @staff_member_required
