@@ -3,8 +3,10 @@ import os
 import re
 import subprocess
 import time
+import zipfile
 from pathlib import Path
 
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -12,6 +14,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 CACHE = {"at": 0.0, "items": [], "exe": None}
 CACHE_TTL = 30
+PORTABLE_ROOT = Path(settings.BASE_DIR) / "omega_data" / "wallpapers"
 
 
 def _steam_root():
@@ -21,10 +24,7 @@ def _steam_root():
         import winreg
 
         for hive in (winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE):
-            for key_path in (
-                r"Software\Valve\Steam",
-                r"Software\WOW6432Node\Valve\Steam",
-            ):
+            for key_path in (r"Software\Valve\Steam", r"Software\WOW6432Node\Valve\Steam"):
                 try:
                     with winreg.OpenKey(hive, key_path) as key:
                         value, _ = winreg.QueryValueEx(key, "SteamPath")
@@ -79,14 +79,49 @@ def _discover():
                     continue
                 project = next(iter(folder.glob("project.json")), None)
                 if project and project.is_file():
-                    items.append({"id": folder.name, "name": folder.name, "file": str(project), "kind": "project"})
+                    items.append({"id": folder.name, "name": folder.name, "file": str(project), "kind": "project", "source": "steam"})
                     continue
                 videos = list(folder.glob("*.mp4")) + list(folder.glob("*.webm"))
                 if videos:
-                    items.append({"id": folder.name, "name": folder.name, "file": str(videos[0]), "kind": "video"})
+                    items.append({"id": folder.name, "name": folder.name, "file": str(videos[0]), "kind": "video", "source": "steam"})
+    PORTABLE_ROOT.mkdir(parents=True, exist_ok=True)
+    for folder in PORTABLE_ROOT.iterdir():
+        if not folder.is_dir():
+            continue
+        project = folder / "project.json"
+        if project.exists():
+            try:
+                data = json.loads(project.read_text(encoding="utf-8", errors="ignore"))
+                name = data.get("title") or folder.name
+                kind = data.get("type", "scene")
+            except (OSError, ValueError):
+                name, kind = folder.name, "unknown"
+            items.append({"id": f"portable-{folder.name}", "name": name, "file": str(project), "kind": kind, "source": "portable"})
+        else:
+            videos = list(folder.glob("*.mp4")) + list(folder.glob("*.webm"))
+            if videos:
+                items.append({"id": f"portable-{folder.name}", "name": folder.name, "file": str(videos[0]), "kind": "video", "source": "portable"})
     items.sort(key=lambda x: x["name"].lower())
     CACHE.update({"at": now, "items": items, "exe": exe})
     return items, exe
+
+
+def _safe_extract(zip_file, destination):
+    destination = destination.resolve()
+    for info in zip_file.infolist():
+        raw_name = info.filename.replace("\\", "/")
+        if not raw_name or raw_name.startswith("/") or ".." in Path(raw_name).parts:
+            raise ValueError("ZIP contiene una ruta no segura.")
+        target = (destination / raw_name).resolve()
+        if destination != target and destination not in target.parents:
+            raise ValueError("ZIP contiene una ruta fuera del directorio permitido.")
+        if info.is_dir():
+            target.mkdir(parents=True, exist_ok=True)
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with zip_file.open(info) as source, target.open("wb") as output:
+            while chunk := source.read(1024 * 1024):
+                output.write(chunk)
 
 
 @staff_member_required
@@ -108,6 +143,50 @@ def wallpaper_list(request):
 
 @staff_member_required
 @require_POST
+def wallpaper_import(request):
+    if not request.user.is_superuser:
+        return JsonResponse({"detail": "Forbidden"}, status=403)
+    uploaded = request.FILES.get("file")
+    if not uploaded or not uploaded.name.lower().endswith(".zip"):
+        return JsonResponse({"detail": "Selecciona el ZIP completo del wallpaper."}, status=400)
+    if uploaded.size > 300 * 1024 * 1024:
+        return JsonResponse({"detail": "El ZIP supera el límite de 300 MB."}, status=400)
+
+    import re
+    stem = re.sub(r"[^a-zA-Z0-9._-]+", "_", Path(uploaded.name).stem).strip("._") or "wallpaper"
+    target = PORTABLE_ROOT / stem
+    n = 2
+    while target.exists():
+        target = PORTABLE_ROOT / f"{stem}_{n}"
+        n += 1
+    target.mkdir(parents=True, exist_ok=False)
+    temp = target / "__source.zip"
+    try:
+        with temp.open("wb") as output:
+            for chunk in uploaded.chunks():
+                output.write(chunk)
+        with zipfile.ZipFile(temp) as zf:
+            names = zf.namelist()
+            if not any(Path(name).name == "project.json" for name in names):
+                raise ValueError("No se encontró project.json; no parece un paquete exportable de Wallpaper Engine.")
+            _safe_extract(zf, target)
+    except (OSError, zipfile.BadZipFile, ValueError) as exc:
+        for p in sorted(target.rglob("*"), reverse=True):
+            if p.is_file():
+                p.unlink(missing_ok=True)
+            elif p.exists():
+                p.rmdir()
+        target.rmdir()
+        return JsonResponse({"detail": f"No se pudo importar: {exc}"}, status=400)
+    finally:
+        temp.unlink(missing_ok=True)
+
+    CACHE["at"] = 0
+    return JsonResponse({"ok": True, "name": stem})
+
+
+@staff_member_required
+@require_POST
 def wallpaper_set(request):
     if not request.user.is_superuser:
         return JsonResponse({"detail": "Forbidden"}, status=403)
@@ -119,17 +198,14 @@ def wallpaper_set(request):
 
     items, exe = _discover()
     allowed = {item["file"] for item in items}
-    if not exe:
-        return JsonResponse({"detail": "No se encontró wallpaper64.exe."}, status=503)
     if target not in allowed:
         return JsonResponse({"detail": "Wallpaper no registrado por OMEGA."}, status=403)
-
+    if target.startswith(str(PORTABLE_ROOT)):
+        return JsonResponse({"ok": True, "file": target, "portable": True, "message": "Fondo guardado en OMEGA. La reproducción nativa depende del tipo de wallpaper; los formatos video/web pueden ejecutarse sin Wallpaper Engine en una siguiente capa del player."})
+    if not exe:
+        return JsonResponse({"detail": "No se encontró wallpaper64.exe."}, status=503)
     try:
-        subprocess.Popen([exe, "-control", "openWallpaper", "-file", target],
-                         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-                         stdout=subprocess.DEVNULL,
-                         stderr=subprocess.DEVNULL)
+        subprocess.Popen([exe, "-control", "openWallpaper", "-file", target], creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except OSError as exc:
         return JsonResponse({"detail": f"No se pudo iniciar Wallpaper Engine: {exc}"}, status=500)
-
-    return JsonResponse({"ok": True, "file": target})
+    return JsonResponse({"ok": True, "file": target, "portable": False})
