@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from urllib.parse import unquote
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
@@ -21,7 +22,7 @@ def _is_superuser(request):
 
 
 def _safe_video_name(filename: str) -> str:
-    src = Path(filename)
+    src = Path(unquote(str(filename or "").strip()).replace("\\", "/").split("/")[-1])
     suffix = src.suffix.lower()
     if suffix not in ALLOWED_EXTENSIONS:
         raise ValueError("Solo se permiten videos MP4 o WEBM.")
@@ -39,27 +40,26 @@ def _read_state() -> dict:
 
 def _write_state(filename: str | None) -> None:
     WALLPAPER_DIR.mkdir(parents=True, exist_ok=True)
-    STATE_FILE.write_text(
-        json.dumps({"file": filename}, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    STATE_FILE.write_text(json.dumps({"file": filename}, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def _safe_path(filename: str) -> Path | None:
-    raw = str(filename or "").strip()
-    if not raw:
+def _find_existing_name(value: object) -> str | None:
+    raw = unquote(str(value or "").strip()).replace("\\", "/")
+    wanted = Path(raw).name
+    if not wanted:
         return None
-    path = (WALLPAPER_DIR / raw).resolve()
-    root = WALLPAPER_DIR.resolve()
-    if path.parent != root or path.suffix.lower() not in ALLOWED_EXTENSIONS:
-        return None
-    return path
+    for item in WALLPAPER_DIR.iterdir() if WALLPAPER_DIR.exists() else ():
+        if item.is_file() and item.suffix.lower() in ALLOWED_EXTENSIONS and item.name == wanted:
+            return item.name
+    return None
 
 
 def _current_path() -> Path | None:
-    state = _read_state()
-    path = _safe_path(str(state.get("file") or ""))
-    return path if path and path.is_file() else None
+    filename = _read_state().get("file")
+    if not filename:
+        return None
+    name = _find_existing_name(filename)
+    return (WALLPAPER_DIR / name) if name else None
 
 
 def _items() -> list[dict]:
@@ -71,10 +71,21 @@ def _items() -> list[dict]:
             continue
         items.append({
             "name": path.name,
-            "current": bool(current and path.resolve() == current.resolve()),
+            "current": bool(current and path.name == current.name),
             "size": path.stat().st_size,
         })
     return items
+
+
+def _extract_filename(request):
+    value = request.POST.get("filename")
+    if value:
+        return value
+    try:
+        payload = json.loads(request.body or "{}")
+    except (ValueError, TypeError):
+        payload = {}
+    return payload.get("filename") or payload.get("name") or ""
 
 
 @staff_member_required
@@ -90,11 +101,7 @@ def listing(request):
     if not _is_superuser(request):
         return JsonResponse({"detail": "Forbidden"}, status=403)
     current = _current_path()
-    return JsonResponse({
-        "items": _items(),
-        "current": current.name if current else None,
-        "video_url": "/admin/omega/wallpapers/video/" if current else None,
-    })
+    return JsonResponse({"items": _items(), "current": current.name if current else None, "video_url": "/admin/omega/wallpapers/video/" if current else None})
 
 
 @staff_member_required
@@ -102,16 +109,12 @@ def listing(request):
 def upload(request):
     if not _is_superuser(request):
         return JsonResponse({"detail": "Forbidden"}, status=403)
-
-    uploads = request.FILES.getlist("files") or request.FILES.getlist("file")
-    if not uploads:
+    files = request.FILES.getlist("files") or request.FILES.getlist("file")
+    if not files:
         return JsonResponse({"detail": "Seleccioná uno o varios videos MP4/WEBM."}, status=400)
-
     WALLPAPER_DIR.mkdir(parents=True, exist_ok=True)
-    saved = []
-    errors = []
-
-    for uploaded in uploads:
+    saved, errors = [], []
+    for uploaded in files:
         if uploaded.size > MAX_SIZE:
             errors.append(f"{uploaded.name}: supera 500 MB")
             continue
@@ -120,14 +123,11 @@ def upload(request):
         except ValueError as exc:
             errors.append(f"{uploaded.name}: {exc}")
             continue
-
         target = WALLPAPER_DIR / filename
-        if target.exists():
-            index = 2
-            while (WALLPAPER_DIR / f"{Path(filename).stem}_{index}{Path(filename).suffix}").exists():
-                index += 1
+        index = 2
+        while target.exists():
             target = WALLPAPER_DIR / f"{Path(filename).stem}_{index}{Path(filename).suffix}"
-
+            index += 1
         temp = WALLPAPER_DIR / f".{target.name}.uploading"
         try:
             with temp.open("wb") as output:
@@ -138,13 +138,9 @@ def upload(request):
         except OSError as exc:
             temp.unlink(missing_ok=True)
             errors.append(f"{uploaded.name}: {exc}")
-
-    # Si no había fondo activo y guardamos al menos uno, activa el primero automáticamente.
     if saved and not _current_path():
         _write_state(saved[0])
-
-    payload = {"ok": bool(saved), "saved": saved, "errors": errors, "message": "Videos guardados dentro del proyecto."}
-    return JsonResponse(payload, status=201 if saved else 400)
+    return JsonResponse({"ok": bool(saved), "saved": saved, "errors": errors, "message": "Videos guardados dentro del proyecto."}, status=201 if saved else 400)
 
 
 @staff_member_required
@@ -152,12 +148,18 @@ def upload(request):
 def activate(request):
     if not _is_superuser(request):
         return JsonResponse({"detail": "Forbidden"}, status=403)
-    filename = str(request.POST.get("filename") or "").strip()
-    path = _safe_path(filename)
-    if not path or not path.is_file():
-        return JsonResponse({"detail": "Wallpaper inválido."}, status=400)
-    _write_state(path.name)
-    return JsonResponse({"ok": True, "file": path.name, "video_url": "/admin/omega/wallpapers/video/"})
+    try:
+        requested = _extract_filename(request)
+        name = _find_existing_name(requested)
+        if not name:
+            # Aceptar también el nombre sanitizado que pudiera haber producido la importación.
+            name = _safe_video_name(requested)
+            if not (WALLPAPER_DIR / name).is_file():
+                raise ValueError("Wallpaper inválido.")
+        _write_state(name)
+    except ValueError as exc:
+        return JsonResponse({"detail": str(exc)}, status=400)
+    return JsonResponse({"ok": True, "file": name, "video_url": "/admin/omega/wallpapers/video/", "message": "Wallpaper activo."})
 
 
 @staff_member_required
@@ -165,18 +167,18 @@ def activate(request):
 def delete(request):
     if not _is_superuser(request):
         return JsonResponse({"detail": "Forbidden"}, status=403)
-    filename = str(request.POST.get("filename") or "").strip()
-    path = _safe_path(filename)
-    if not path:
-        return JsonResponse({"detail": "Wallpaper inválido."}, status=400)
-    if not path.is_file():
-        return JsonResponse({"detail": "Ese wallpaper no existe."}, status=404)
     try:
-        was_current = _current_path() and _current_path().name == path.name
+        name = _find_existing_name(_extract_filename(request))
+        if not name:
+            raise ValueError("Wallpaper inválido.")
+        path = WALLPAPER_DIR / name
+        was_current = _current_path() and _current_path().name == name
         path.unlink()
-        remaining = [item for item in _items() if item["name"] != path.name]
         if was_current:
-            _write_state(remaining[0]["name"] if remaining else None)
+            remaining = [x["name"] for x in _items() if x["name"] != name]
+            _write_state(remaining[0] if remaining else None)
+    except ValueError as exc:
+        return JsonResponse({"detail": str(exc)}, status=400)
     except OSError as exc:
         return JsonResponse({"detail": f"No se pudo eliminar: {exc}"}, status=500)
     return JsonResponse({"ok": True, "message": "Wallpaper eliminado del proyecto."})
