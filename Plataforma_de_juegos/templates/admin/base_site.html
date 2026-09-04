@@ -1,21 +1,16 @@
 {% extends "admin/base.html" %}
 {% load static %}
-
 {% block title %}{{ title }} | SISTEMA_CENTRAL :: OMEGA{% endblock %}
-
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'admin/omega/omega_admin.css' %}">
 <link rel="stylesheet" href="{% static 'admin/omega/omega_scene.css' %}">
+<style>
+body.dashboard #header, body.dashboard #nav-sidebar, body.dashboard .breadcrumbs{display:none!important}
+body.dashboard #container, body.dashboard #main, body.dashboard #content{margin:0!important;padding:0!important;max-width:none!important;min-height:100vh!important}
+body.dashboard #content-start{margin:0!important}
+</style>
 {% endblock %}
-
-{% block branding %}
-<h1 id="site-name"><a href="{% url 'admin:index' %}">⚡ SISTEMA_CENTRAL :: OMEGA ⚡</a></h1>
-{% endblock %}
-
+{% block branding %}<h1 id="site-name"><a href="{% url 'admin:index' %}">⚡ SISTEMA_CENTRAL :: OMEGA ⚡</a></h1>{% endblock %}
 {% block nav-global %}{% endblock %}
-
-{% block extrahead %}
-{{ block.super }}
-<script defer src="{% static 'admin/omega/omega_admin.js' %}"></script>
-{% endblock %}
+{% block extrahead %}{{ block.super }}<script defer src="{% static 'admin/omega/omega_admin.js' %}"></script>{% endblock %}
