@@ -5,7 +5,6 @@
   const STATE = 'omega_music_state_v3';
   const listUrl = '/admin/omega/music/list/';
   const streamBase = '/admin/omega/music/stream/';
-  const AJAX_ASSET_ATTR = 'data-omega-ajax-asset';
 
   const make = (tag, cls, text) => {
     const el = document.createElement(tag);
@@ -44,10 +43,6 @@
   let index = Number(localStorage.getItem(STATE + ':index') || 0);
   let restoring = true;
 
-  const csrf = () => {
-    const value = document.cookie.split('; ').find(x => x.startsWith('csrftoken='));
-    return value ? decodeURIComponent(value.split('=').slice(1).join('=')) : '';
-  };
   const fmt = s => {
     s = Number.isFinite(s) ? Math.max(0, s) : 0;
     return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
@@ -146,45 +141,83 @@
   window.addEventListener('pagehide', save);
   document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
 
-  // Copia estilos de la página destino cuando el admin navega por AJAX.
-  // Esto evita que wallpaper/dashboard aparezcan sin CSS hasta refrescar.
-  const syncIncomingStyles = (doc) => {
-    document.head.querySelectorAll(`[${AJAX_ASSET_ATTR}]`).forEach(node => node.remove());
+  // OMEGA AJAX ADMIN: carga una página sin recargar el navegador y conserva Music Core.
+  // Importante: los estilos inline de los templates Django deben copiarse al <head>.
+  const injectedStyles = new Map();
 
-    doc.head.querySelectorAll('link[rel="stylesheet"], style').forEach(source => {
-      if (source.tagName === 'LINK') {
-        const href = source.getAttribute('href');
-        if (!href) return;
-        const absolute = new URL(href, location.href).href;
-        const exists = Array.from(document.head.querySelectorAll('link[rel="stylesheet"]'))
-          .some(link => link.href === absolute);
-        if (exists) return;
-      } else {
-        const text = source.textContent.trim();
-        if (!text) return;
-        const exists = Array.from(document.head.querySelectorAll('style'))
-          .some(style => !style.hasAttribute(AJAX_ASSET_ATTR) && style.textContent.trim() === text);
-        if (exists) return;
-      }
-
-      const clone = source.cloneNode(true);
-      clone.setAttribute(AJAX_ASSET_ATTR, '1');
+  const syncIncomingHead = (doc) => {
+    doc.head.querySelectorAll('link[rel="stylesheet"]').forEach(source => {
+      const href = source.href || source.getAttribute('href');
+      if (!href || injectedStyles.has(`link:${href}`)) return;
+      const clone = document.createElement('link');
+      clone.rel = 'stylesheet';
+      clone.href = new URL(href, location.href).href;
+      clone.dataset.omegaAjaxAsset = '1';
       document.head.appendChild(clone);
+      injectedStyles.set(`link:${href}`, clone);
+    });
+
+    doc.head.querySelectorAll('style').forEach(source => {
+      const text = source.textContent || '';
+      if (!text.trim()) return;
+      const key = `style:${text}`;
+      if (injectedStyles.has(key)) return;
+      const clone = document.createElement('style');
+      clone.textContent = text;
+      clone.dataset.omegaAjaxAsset = '1';
+      document.head.appendChild(clone);
+      injectedStyles.set(key, clone);
     });
   };
 
-  // Ejecuta los <script> que vienen dentro del #content recién cargado.
-  // DOMParser/replacement no los ejecuta por sí solo.
   const executeIncomingScripts = (container) => {
     container.querySelectorAll('script').forEach(oldScript => {
       const script = document.createElement('script');
-      for (const attr of oldScript.attributes) script.setAttribute(attr.name, attr.value);
+      Array.from(oldScript.attributes).forEach(attr => script.setAttribute(attr.name, attr.value));
       script.textContent = oldScript.textContent || '';
       oldScript.replaceWith(script);
     });
   };
 
-  // Navegación GET dentro del admin: cambia solo #content y conserva el audio vivo.
+  const navigateAjax = async (url) => {
+    const response = await fetch(url.href, {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' }
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const html = await response.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const incoming = doc.querySelector('#content');
+    const current = document.querySelector('#content');
+    if (!incoming || !current) throw new Error('Contenido AJAX incompleto');
+
+    // 1) Primero cargamos CSS/estilos del destino.
+    syncIncomingHead(doc);
+
+    // 2) Reemplazamos SOLO el contenido.
+    current.replaceWith(incoming);
+
+    // 3) Ejecutamos los scripts del destino que DOMParser no ejecuta automáticamente.
+    executeIncomingScripts(incoming);
+
+    // 4) Wallpaper necesita que sus estilos queden aplicados inmediatamente.
+    if (url.pathname === '/admin/omega/wallpapers/') {
+      const wallStyles = doc.head.querySelectorAll('style');
+      wallStyles.forEach(style => {
+        const clone = document.createElement('style');
+        clone.textContent = style.textContent || '';
+        clone.dataset.omegaWallpaperRuntime = '1';
+        document.head.appendChild(clone);
+      });
+    }
+
+    document.title = doc.title || document.title;
+    history.pushState({ omegaAjax: true }, '', url.href);
+    window.scrollTo(0, 0);
+  };
+
   document.addEventListener('click', async (event) => {
     const link = event.target.closest('a[href]');
     if (!link || event.defaultPrevented || event.button !== 0) return;
@@ -199,34 +232,9 @@
 
     event.preventDefault();
     try {
-      const response = await fetch(url.href, {
-        credentials: 'same-origin',
-        cache: 'no-store',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const html = await response.text();
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      const incoming = doc.querySelector('#content');
-      const current = document.querySelector('#content');
-
-      if (!incoming || !current) {
-        location.href = url.href;
-        return;
-      }
-
-      // Primero cargamos los estilos propios de la página destino.
-      syncIncomingStyles(doc);
-
-      // Después cambiamos el contenido y reactivamos sus scripts.
-      current.replaceWith(incoming);
-      executeIncomingScripts(incoming);
-
-      document.title = doc.title || document.title;
-      history.pushState({ omegaAjax: true }, '', url.href);
-      window.scrollTo(0, 0);
+      await navigateAjax(url);
     } catch (_) {
+      // El fallback solo ocurre si la navegación AJAX realmente falla.
       location.href = url.href;
     }
   });
