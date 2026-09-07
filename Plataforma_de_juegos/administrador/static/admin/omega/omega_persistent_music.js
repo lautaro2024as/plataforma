@@ -5,6 +5,7 @@
   const STATE = 'omega_music_state_v3';
   const listUrl = '/admin/omega/music/list/';
   const streamBase = '/admin/omega/music/stream/';
+  const AJAX_ASSET_ATTR = 'data-omega-ajax-asset';
 
   const make = (tag, cls, text) => {
     const el = document.createElement(tag);
@@ -145,6 +146,44 @@
   window.addEventListener('pagehide', save);
   document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
 
+  // Copia estilos de la página destino cuando el admin navega por AJAX.
+  // Esto evita que wallpaper/dashboard aparezcan sin CSS hasta refrescar.
+  const syncIncomingStyles = (doc) => {
+    document.head.querySelectorAll(`[${AJAX_ASSET_ATTR}]`).forEach(node => node.remove());
+
+    doc.head.querySelectorAll('link[rel="stylesheet"], style').forEach(source => {
+      if (source.tagName === 'LINK') {
+        const href = source.getAttribute('href');
+        if (!href) return;
+        const absolute = new URL(href, location.href).href;
+        const exists = Array.from(document.head.querySelectorAll('link[rel="stylesheet"]'))
+          .some(link => link.href === absolute);
+        if (exists) return;
+      } else {
+        const text = source.textContent.trim();
+        if (!text) return;
+        const exists = Array.from(document.head.querySelectorAll('style'))
+          .some(style => !style.hasAttribute(AJAX_ASSET_ATTR) && style.textContent.trim() === text);
+        if (exists) return;
+      }
+
+      const clone = source.cloneNode(true);
+      clone.setAttribute(AJAX_ASSET_ATTR, '1');
+      document.head.appendChild(clone);
+    });
+  };
+
+  // Ejecuta los <script> que vienen dentro del #content recién cargado.
+  // DOMParser/replacement no los ejecuta por sí solo.
+  const executeIncomingScripts = (container) => {
+    container.querySelectorAll('script').forEach(oldScript => {
+      const script = document.createElement('script');
+      for (const attr of oldScript.attributes) script.setAttribute(attr.name, attr.value);
+      script.textContent = oldScript.textContent || '';
+      oldScript.replaceWith(script);
+    });
+  };
+
   // Navegación GET dentro del admin: cambia solo #content y conserva el audio vivo.
   document.addEventListener('click', async (event) => {
     const link = event.target.closest('a[href]');
@@ -152,10 +191,11 @@
     if (link.target && link.target !== '_self') return;
     if (link.hasAttribute('download')) return;
     if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    if (link.closest('form')) return;
+
     const url = new URL(link.href, location.href);
     if (url.origin !== location.origin || !url.pathname.startsWith('/admin/')) return;
     if (url.pathname === '/admin/logout/' || url.pathname.includes('/password/')) return;
-    if (link.closest('form')) return;
 
     event.preventDefault();
     try {
@@ -165,12 +205,24 @@
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
       const html = await response.text();
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const incoming = doc.querySelector('#content');
       const current = document.querySelector('#content');
-      if (!incoming || !current) { location.href = url.href; return; }
+
+      if (!incoming || !current) {
+        location.href = url.href;
+        return;
+      }
+
+      // Primero cargamos los estilos propios de la página destino.
+      syncIncomingStyles(doc);
+
+      // Después cambiamos el contenido y reactivamos sus scripts.
       current.replaceWith(incoming);
+      executeIncomingScripts(incoming);
+
       document.title = doc.title || document.title;
       history.pushState({ omegaAjax: true }, '', url.href);
       window.scrollTo(0, 0);
