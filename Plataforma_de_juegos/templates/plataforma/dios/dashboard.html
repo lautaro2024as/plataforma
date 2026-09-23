@@ -1,0 +1,102 @@
+{% extends "plataforma/base.html" %}
+{% load static %}
+
+{% block title %}NEXUS // DIOS{% endblock %}
+
+{% block content %}
+<div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+  <div class="glass-panel rounded-3xl p-6 md:p-8 mb-7 border border-amber-500/30">
+    <div class="flex flex-col md:flex-row justify-between gap-5">
+      <div>
+        <span class="inline-flex px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold uppercase">NEXUS // DIOS</span>
+        <h1 class="text-3xl md:text-5xl font-black text-white mt-3">Panel Maestro</h1>
+        <p class="text-slate-400 mt-2 text-sm">Cuenta: <b class="text-amber-300">{{ request.user.username }}</b>. Control total de la plataforma.</p>
+      </div>
+      <a href="{% url 'administrador:catalogo' %}?view=admin" class="self-start px-4 py-3 rounded-xl bg-amber-500 text-slate-950 font-black text-xs">Abrir moderación completa</a>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-7">
+    <section class="glass-panel rounded-2xl p-6">
+      <h2 class="text-xl font-black text-white">Crear administrador especial</h2>
+      <p class="text-xs text-slate-500 mt-1">No existe registro público de administradores. Solo Dios puede crearlos.</p>
+      <form method="post" action="{% url 'dios:crear_admin' %}" class="space-y-3 mt-5">
+        {% csrf_token %}
+        <input name="username" required placeholder="Usuario" class="w-full glass-input rounded-xl px-3 py-2.5">
+        <input name="email" type="email" required placeholder="Correo" class="w-full glass-input rounded-xl px-3 py-2.5">
+        <input name="password" type="password" required minlength="8" placeholder="Contraseña" class="w-full glass-input rounded-xl px-3 py-2.5">
+        <div class="grid sm:grid-cols-2 gap-2 text-xs text-slate-300 pt-2">
+          <label><input type="checkbox" name="puede_strike_usuario"> Strike usuarios</label>
+          <label><input type="checkbox" name="puede_ban_usuario"> Banear usuarios</label>
+          <label><input type="checkbox" name="puede_eliminar_usuario"> Eliminar usuarios</label>
+          <label><input type="checkbox" name="puede_strike_desarrollador"> Strike desarrolladores</label>
+          <label><input type="checkbox" name="puede_ban_desarrollador"> Banear desarrolladores</label>
+          <label><input type="checkbox" name="puede_eliminar_desarrollador"> Eliminar desarrolladores</label>
+          <label><input type="checkbox" name="puede_eliminar_juegos"> Eliminar juegos</label>
+          <label><input type="checkbox" name="puede_generar_claves"> Generar claves gratis</label>
+        </div>
+        <button class="w-full py-3 rounded-xl bg-amber-500 text-slate-950 font-black">Crear administrador</button>
+      </form>
+    </section>
+
+    <section class="glass-panel rounded-2xl p-6">
+      <h2 class="text-xl font-black text-white">Generar clave gratis</h2>
+      <p class="text-xs text-slate-500 mt-1">Dios puede entregar cualquier juego publicado sin cobrar.</p>
+      <form method="post" action="{% url 'dios:generar_clave' %}" class="space-y-3 mt-5">
+        {% csrf_token %}
+        <select name="recipient_id" required class="w-full glass-input rounded-xl px-3 py-2.5 text-xs">
+          <option value="">Elegir usuario</option>
+          {% for profile in usuarios %}<option value="{{ profile.id }}">{{ profile.usuario.username }} — {{ profile.get_rol_display }}</option>{% endfor %}
+        </select>
+        <select name="game_id" required class="w-full glass-input rounded-xl px-3 py-2.5 text-xs">
+          <option value="">Elegir juego</option>
+          {% for game in juegos %}<option value="{{ game.id }}">{{ game.titulo }}</option>{% endfor %}
+        </select>
+        <select name="edition" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs">
+          {% for edition in ediciones %}<option value="{{ edition }}">{{ edition }}</option>{% endfor %}
+        </select>
+        <button class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-black">Generar clave GOD</button>
+      </form>
+    </section>
+  </div>
+
+  <section class="glass-panel rounded-2xl p-6 mt-7">
+    <div class="flex items-center justify-between mb-5">
+      <div><h2 class="text-xl font-black text-white">Administradores especiales</h2><p class="text-xs text-slate-500">Podés activar/desactivar y cambiar permisos cuando quieras.</p></div>
+      <span class="text-xs text-amber-300">{{ admins|length }} cuenta(s)</span>
+    </div>
+    <div class="space-y-4">
+      {% for admin in admins %}
+      <form method="post" action="{% url 'dios:editar_permisos' admin.usuario.id %}" class="border border-slate-800 rounded-2xl p-4 bg-slate-950/60">
+        {% csrf_token %}
+        <div class="flex flex-col lg:flex-row gap-4 lg:items-start lg:justify-between">
+          <div class="min-w-48">
+            <h3 class="font-black text-white">{{ admin.usuario.username }}</h3>
+            <p class="text-[10px] text-slate-500">{{ admin.usuario.email }} · creado por {{ admin.creado_por.username }}</p>
+            <label class="inline-flex items-center gap-2 text-xs text-slate-300 mt-2"><input type="checkbox" name="activo" {% if admin.activo %}checked{% endif %}> Cuenta activa</label>
+          </div>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-[10px] text-slate-300 flex-1">
+            <label><input type="checkbox" name="puede_strike_usuario" {% if admin.puede_strike_usuario %}checked{% endif %}> Strike usuarios</label>
+            <label><input type="checkbox" name="puede_ban_usuario" {% if admin.puede_ban_usuario %}checked{% endif %}> Ban usuarios</label>
+            <label><input type="checkbox" name="puede_eliminar_usuario" {% if admin.puede_eliminar_usuario %}checked{% endif %}> Eliminar usuarios</label>
+            <label><input type="checkbox" name="puede_strike_desarrollador" {% if admin.puede_strike_desarrollador %}checked{% endif %}> Strike devs</label>
+            <label><input type="checkbox" name="puede_ban_desarrollador" {% if admin.puede_ban_desarrollador %}checked{% endif %}> Ban devs</label>
+            <label><input type="checkbox" name="puede_eliminar_desarrollador" {% if admin.puede_eliminar_desarrollador %}checked{% endif %}> Eliminar devs</label>
+            <label><input type="checkbox" name="puede_eliminar_juegos" {% if admin.puede_eliminar_juegos %}checked{% endif %}> Eliminar juegos</label>
+            <label><input type="checkbox" name="puede_generar_claves" {% if admin.puede_generar_claves %}checked{% endif %}> Generar claves gratis</label>
+          </div>
+          <button class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 text-xs font-black">Guardar permisos</button>
+        </div>
+      </form>
+      {% empty %}
+      <div class="text-center py-10 text-slate-500">Todavía no creaste administradores especiales.</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="mt-6 flex gap-3">
+    <a href="{% url 'administrador:catalogo' %}?view=admin" class="text-xs text-cyan-300">← Moderación</a>
+    <a href="{% url 'administrador:catalogo' %}" class="text-xs text-slate-400">Tienda</a>
+  </div>
+</div>
+{% endblock %}
