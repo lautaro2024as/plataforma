@@ -114,7 +114,7 @@
     </div>
   </section>
 
-  {% if user.is_superuser or perfil and perfil.rol == "desarrollador" %}
+  {% if perfil and perfil.rol == "desarrollador" %}
   <section id="viewDevPortal" class="hidden-view space-y-7">
     <div class="bg-purple-950/20 border border-purple-800/40 rounded-3xl p-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -141,7 +141,7 @@
   </section>
   {% endif %}
 
-  {% if user.is_staff %}
+  {% if is_dios or is_admin_especial %}
   <section id="viewGodPanel" class="hidden-view space-y-7">
     <div class="bg-gradient-to-br from-slate-900 via-amber-950/30 to-slate-950 rounded-3xl p-6 border border-amber-500/25">
       <span class="text-xs font-bold uppercase text-amber-300">{% if is_dios %}DIOS{% else %}Administrador Especial{% endif %}</span>

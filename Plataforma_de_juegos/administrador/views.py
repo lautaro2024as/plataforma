@@ -217,12 +217,9 @@ def catalogo_juegos(request):
                 "description": game.descripcion,
                 "key_type": game.tipo_clave,
                 "can_free": bool(
-                    is_dios(request.user)
-                    or (
-                        perfil
-                        and perfil.rol == "desarrollador"
-                        and game.desarrollador_id == perfil.id
-                    )
+                    perfil
+                    and perfil.rol == "desarrollador"
+                    and game.desarrollador_id == perfil.id
                 ),
             }
         )
