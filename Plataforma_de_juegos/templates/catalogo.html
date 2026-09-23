@@ -6,18 +6,18 @@
 <header class="sticky top-0 z-40 backdrop-blur-xl bg-slate-900/80 border-b border-slate-800/80">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between gap-3 min-h-20 py-3">
-      <button onclick="showView('store')" class="flex items-center gap-3 text-left">
+      <a href="{% url 'administrador:catalogo' %}" class="flex items-center gap-3 text-left" aria-label="Ir a la página principal de NEXUS">
         <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 flex items-center justify-center text-slate-950 text-xl font-black">N</div>
         <div><div class="text-xl font-black tracking-wider text-white">NEXUS <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">KEYS</span></div><div class="text-[10px] text-slate-400 font-semibold tracking-widest uppercase">Digital Marketplace</div></div>
-      </button>
+      </a>
       <div class="flex-1 max-w-md hidden md:block"><div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i><input id="searchInput" type="search" placeholder="Buscar juegos o desarrolladores..." class="w-full glass-input rounded-2xl pl-11 pr-4 py-2.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none"></div></div>
 
       <div class="flex items-center gap-2">
         <nav class="flex items-center gap-1">
-          <button data-view="store" onclick="showView('store')" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-store"></i><span class="hidden xl:inline"> Tienda</span></button>
-          {% if user.is_authenticated %}<button data-view="library" onclick="showView('library')" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-layer-group"></i><span class="hidden xl:inline"> Biblioteca</span></button>{% endif %}
-          {% if perfil and perfil.rol == "desarrollador" %}<button data-view="dev" onclick="showView('dev')" class="px-3 py-2 rounded-xl text-xs font-bold text-purple-300 hover:bg-purple-950/40 border border-purple-500/30"><i class="fa-solid fa-laptop-code"></i><span class="hidden xl:inline"> Portal Dev</span></button>{% endif %}
-          {% if is_dios or is_admin_especial %}<button data-view="admin" onclick="showView('admin')" class="px-3 py-2 rounded-xl text-xs font-bold text-amber-300 hover:bg-amber-950/40 border border-amber-500/30"><i class="fa-solid fa-shield-halved"></i><span class="hidden xl:inline"> Panel</span></button>{% endif %}
+          <a data-view="store" href="{% url 'administrador:catalogo' %}?view=store" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-store"></i><span class="hidden xl:inline"> Tienda</span></a>
+          {% if user.is_authenticated %}<a data-view="library" href="{% url 'administrador:catalogo' %}?view=library" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-layer-group"></i><span class="hidden xl:inline"> Biblioteca</span></a>{% endif %}
+          {% if perfil and perfil.rol == "desarrollador" %}<a data-view="dev" href="{% url 'administrador:catalogo' %}?view=dev" class="px-3 py-2 rounded-xl text-xs font-bold text-purple-300 hover:bg-purple-950/40 border border-purple-500/30"><i class="fa-solid fa-laptop-code"></i><span class="hidden xl:inline"> Portal Dev</span></a>{% endif %}
+          {% if is_dios or is_admin_especial %}<a data-view="admin" href="{% url 'administrador:panel' %}?view=admin" class="px-3 py-2 rounded-xl text-xs font-bold text-amber-300 hover:bg-amber-950/40 border border-amber-500/30"><i class="fa-solid fa-shield-halved"></i><span class="hidden xl:inline"> Panel</span></a>{% endif %}
         </nav>
 
         <button onclick="toggleCartDrawer()" class="relative p-2.5 bg-slate-900 border border-slate-800 rounded-xl"><i class="fa-solid fa-cart-shopping"></i><span class="absolute -top-1.5 -right-1.5 bg-cyan-500 text-slate-950 font-bold text-xs w-5 h-5 rounded-full flex items-center justify-center">{{ cart_items|length }}</span></button>
@@ -30,14 +30,14 @@
           </button>
           <div class="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 hidden group-hover:block z-50">
             {% if not user.is_authenticated %}
-              <button onclick="openAuthModal('login')" class="w-full text-left px-3 py-2 rounded-xl text-xs text-cyan-400"><i class="fa-solid fa-right-to-bracket mr-2"></i>Iniciar sesión</button>
-              <button onclick="openAuthModal('regUser')" class="w-full text-left px-3 py-2 rounded-xl text-xs text-emerald-400"><i class="fa-solid fa-user-plus mr-2"></i>Crear usuario</button>
-              <button onclick="openAuthModal('regDev')" class="w-full text-left px-3 py-2 rounded-xl text-xs text-purple-400"><i class="fa-solid fa-laptop-code mr-2"></i>Registrar desarrollador</button>
+              <a href="{% url 'administrador:catalogo' %}?auth=login" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-cyan-400"><i class="fa-solid fa-right-to-bracket mr-2"></i>Iniciar sesión</a>
+              <a href="{% url 'administrador:catalogo' %}?auth=regUser" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-emerald-400"><i class="fa-solid fa-user-plus mr-2"></i>Crear usuario</a>
+              <a href="{% url 'administrador:catalogo' %}?auth=regDev" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-purple-400"><i class="fa-solid fa-laptop-code mr-2"></i>Registrar desarrollador</a>
             {% else %}
               <div class="px-3 py-2 border-b border-slate-800"><p class="text-xs font-bold">{{ user.username }}</p><p class="text-[10px] text-slate-500">{{ user.email }}</p></div>
-              <button onclick="showView('library')" class="w-full text-left px-3 py-2 rounded-xl text-xs">Mi biblioteca</button>
-              {% if perfil and perfil.rol == "desarrollador" %}<button onclick="showView('dev')" class="w-full text-left px-3 py-2 rounded-xl text-xs text-purple-300">Portal desarrollador</button>{% endif %}
-              {% if is_dios %}<a href="{% url 'dios:dashboard' %}" class="block w-full px-3 py-2 rounded-xl text-xs text-amber-300">Panel Dios</a>{% elif is_admin_especial %}<button onclick="showView('admin')" class="w-full text-left px-3 py-2 rounded-xl text-xs text-amber-300">Panel de administración</button>{% endif %}
+              <a href="{% url 'administrador:catalogo' %}?view=library" class="block w-full text-left px-3 py-2 rounded-xl text-xs">Mi biblioteca</a>
+              {% if perfil and perfil.rol == "desarrollador" %}<a href="{% url 'administrador:catalogo' %}?view=dev" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-purple-300">Portal desarrollador</a>{% endif %}
+              {% if is_dios %}<a href="{% url 'dios:dashboard' %}" class="block w-full px-3 py-2 rounded-xl text-xs text-amber-300">Panel Dios</a>{% elif is_admin_especial %}<a href="{% url 'administrador:panel' %}?view=admin" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-amber-300">Panel de administración</a>{% endif %}
               <form method="post" action="{% url 'clientes:logout' %}" class="border-t border-slate-800 mt-1 pt-1">{% csrf_token %}<button class="w-full text-left px-3 py-2 rounded-xl text-xs text-red-400">Cerrar sesión</button></form>
             {% endif %}
           </div>
