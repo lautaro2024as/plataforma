@@ -26,7 +26,7 @@ def dashboard(request):
     games = Juego.objects.select_related("desarrollador__usuario").all().order_by("-fecha_subida")
     return render(
         request,
-        "dios/dashboard.html",
+        "plataforma/dios/dashboard.html",
         {
             "dios_cuenta": DiosCuenta.objects.get(usuario=request.user),
             "admins": admins,
