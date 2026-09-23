@@ -2,13 +2,13 @@ from datetime import date
 from decimal import Decimal
 
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from dios.authz import has_admin_permission, is_admin_especial, is_dios
 from .models import Juego, LicenciaCompra, PerfilUsuario
 
 
@@ -30,8 +30,10 @@ def _edad(fecha_nacimiento):
     )
 
 
-def _es_staff(request):
-    return request.user.is_authenticated and request.user.is_staff
+def _es_admin(request):
+    return request.user.is_authenticated and (
+        is_dios(request.user) or is_admin_especial(request.user)
+    )
 
 
 def catalogo_juegos(request):
@@ -42,14 +44,15 @@ def catalogo_juegos(request):
         .order_by("-fecha_subida")
     )
 
-    if not request.user.is_superuser:
+    privilegiado = _es_admin(request)
+    if not privilegiado:
         if not perfil or not perfil.fecha_nacimiento or _edad(perfil.fecha_nacimiento) < 18:
             juegos = juegos.filter(etiqueta_mas_18=False)
 
     juegos_list = list(juegos)
 
     licencias = []
-    if perfil:
+    if perfil and perfil.rol in ("jugador", "desarrollador"):
         licencias = list(
             LicenciaCompra.objects.filter(jugador=perfil)
             .select_related("juego")
@@ -76,19 +79,22 @@ def catalogo_juegos(request):
     admin_metrics = None
     admin_user_rows = []
 
-    if _es_staff(request):
-        admin_users = User.objects.all().order_by("username")
-
-        for account in admin_users:
+    if _es_admin(request):
+        for account in User.objects.all().order_by("username"):
             account_profile = getattr(account, "perfilusuario", None)
-            if account.is_superuser:
-                role_label = "ADMINISTRADOR"
-            elif account.is_staff:
-                role_label = "STAFF / MODERADOR"
+            if is_dios(account):
+                role_label = "DIOS"
+            elif account_profile and account_profile.rol == "administrador":
+                role_label = "ADMINISTRADOR ESPECIAL"
             elif account_profile and account_profile.rol == "desarrollador":
                 role_label = "DESARROLLADOR"
             else:
                 role_label = "USUARIO"
+
+            is_target_admin = bool(
+                account_profile and account_profile.rol == "administrador"
+            )
+            is_target_dios = is_dios(account)
 
             admin_user_rows.append(
                 {
@@ -97,7 +103,54 @@ def catalogo_juegos(request):
                     "role_label": role_label,
                     "strikes": account_profile.strikes if account_profile else 0,
                     "banned": account_profile.baneado if account_profile else False,
-                    "can_moderate": not account.is_superuser or request.user.is_superuser,
+                    "can_strike": (
+                        not is_target_admin
+                        and not is_target_dios
+                        and bool(
+                            is_dios(request.user)
+                            or (
+                                account_profile
+                                and has_admin_permission(
+                                    request.user,
+                                    "strike_desarrollador"
+                                    if account_profile.rol == "desarrollador"
+                                    else "strike_usuario",
+                                )
+                            )
+                        )
+                    ),
+                    "can_ban": (
+                        not is_target_admin
+                        and not is_target_dios
+                        and bool(
+                            is_dios(request.user)
+                            or (
+                                account_profile
+                                and has_admin_permission(
+                                    request.user,
+                                    "ban_desarrollador"
+                                    if account_profile.rol == "desarrollador"
+                                    else "ban_usuario",
+                                )
+                            )
+                        )
+                    ),
+                    "can_delete": (
+                        not is_target_admin
+                        and not is_target_dios
+                        and bool(
+                            is_dios(request.user)
+                            or (
+                                account_profile
+                                and has_admin_permission(
+                                    request.user,
+                                    "eliminar_desarrollador"
+                                    if account_profile.rol == "desarrollador"
+                                    else "eliminar_usuario",
+                                )
+                            )
+                        )
+                    ),
                 }
             )
 
@@ -116,13 +169,14 @@ def catalogo_juegos(request):
 
         admin_metrics = {
             "total_games": Juego.objects.filter(estado="publicado").count(),
-            "total_users": User.objects.filter(is_superuser=False).count(),
+            "total_users": User.objects.filter(
+                is_superuser=False,
+            ).exclude(
+                perfilusuario__rol="administrador",
+            ).count(),
             "total_devs": PerfilUsuario.objects.filter(rol="desarrollador").count(),
             "platform_revenue": platform_revenue,
         }
-
-        if request.user.is_superuser:
-            mis_juegos = admin_games
 
     cart_items = []
     cart_total = Decimal("0")
@@ -131,7 +185,7 @@ def catalogo_juegos(request):
     for index, item in enumerate(raw_cart):
         try:
             game = Juego.objects.get(pk=int(item.get("game_id", 0)), estado="publicado")
-        except (Juego.DoesNotExist, ValueError, TypeError, AttributeError):
+        except (Juego.DoesNotExist, ValueError, TypeError, AttributeError, KeyError):
             continue
 
         edition = item.get("edition", "Estándar")
@@ -143,125 +197,141 @@ def catalogo_juegos(request):
 
         final_price = game.precio + extra
         cart_items.append(
-            {
-                "index": index,
-                "game": game,
-                "edition": edition,
-                "price": final_price,
-            }
+            {"index": index, "game": game, "edition": edition, "price": final_price}
         )
         cart_total += final_price
 
     game_data = []
     for game in juegos_list:
-        price = str(game.precio)
-        original = str(game.precio_original or game.precio)
-        can_free = bool(
-            request.user.is_authenticated
-            and (
-                request.user.is_superuser
-                or (
-                    perfil
-                    and perfil.rol == "desarrollador"
-                    and game.desarrollador_id == perfil.id
-                )
-            )
-        )
         game_data.append(
             {
                 "id": game.id,
                 "title": game.titulo,
                 "category": game.categoria,
-                "price": price,
-                "original_price": original,
-                "developer": (
-                    game.desarrollador.nombre_estudio
-                    or game.desarrollador.usuario.username
-                ),
+                "price": str(game.precio),
+                "original_price": str(game.precio_original or game.precio),
+                "developer": game.desarrollador.nombre_estudio or game.desarrollador.usuario.username,
                 "rating": str(game.calificacion),
                 "image": game.imagen_url
                 or "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80",
                 "description": game.descripcion,
                 "key_type": game.tipo_clave,
-                "can_free": can_free,
+                "can_free": bool(
+                    is_dios(request.user)
+                    or (
+                        perfil
+                        and perfil.rol == "desarrollador"
+                        and game.desarrollador_id == perfil.id
+                    )
+                ),
             }
         )
 
-    contexto = {
-        "juegos": juegos_list,
-        "licencias": licencias,
-        "mis_juegos": mis_juegos,
-        "dev_revenue": dev_revenue,
-        "admin_user_rows": admin_user_rows,
-        "admin_games": admin_games,
-        "admin_metrics": admin_metrics,
-        "perfil": perfil,
-        "game_data": game_data,
-        "cart_items": cart_items,
-        "cart_total": cart_total,
-        "active_view": request.GET.get("view", "store"),
-    }
-
-    return render(request, "catalogo.html", contexto)
-
-
-@user_passes_test(_es_staff)
-def panel(request):
-    return redirect("/?view=admin")
+    return render(
+        request,
+        "catalogo.html",
+        {
+            "juegos": juegos_list,
+            "licencias": licencias,
+            "mis_juegos": mis_juegos,
+            "dev_revenue": dev_revenue,
+            "admin_user_rows": admin_user_rows,
+            "admin_games": admin_games,
+            "admin_metrics": admin_metrics,
+            "perfil": perfil,
+            "game_data": game_data,
+            "cart_items": cart_items,
+            "cart_total": cart_total,
+            "active_view": request.GET.get("view", "store"),
+        },
+    )
 
 
-def _moderation_allowed(request, target):
-    if not _es_staff(request):
+def _required_permission(request, target, action):
+    if is_dios(request.user):
+        return True
+
+    profile = getattr(target, "perfilusuario", None)
+    if not profile or profile.rol == "administrador" or is_dios(target):
         return False
-    if target.is_superuser:
-        return request.user.is_superuser
-    return True
+
+    permission = {
+        ("jugador", "strike"): "strike_usuario",
+        ("jugador", "ban"): "ban_usuario",
+        ("jugador", "delete"): "eliminar_usuario",
+        ("desarrollador", "strike"): "strike_desarrollador",
+        ("desarrollador", "ban"): "ban_desarrollador",
+        ("desarrollador", "delete"): "eliminar_desarrollador",
+    }.get((profile.rol, action))
+
+    return bool(permission and has_admin_permission(request.user, permission))
 
 
 @require_POST
 def add_strike(request, user_id):
     target = get_object_or_404(User, pk=user_id)
-    if not _moderation_allowed(request, target):
-        return HttpResponseForbidden("No tenés permisos para moderar esta cuenta.")
+    if not _es_admin(request) or not _required_permission(request, target, "strike"):
+        return HttpResponseForbidden("No tenés permiso para dar strikes a esta cuenta.")
 
-    perfil = getattr(target, "perfilusuario", None)
-    if not perfil:
-        perfil = PerfilUsuario.objects.create(usuario=target)
+    profile = getattr(target, "perfilusuario", None)
+    if not profile:
+        return HttpResponseForbidden("La cuenta no tiene perfil.")
 
-    perfil.strikes += 1
-    if perfil.strikes >= 3:
-        perfil.baneado = True
+    profile.strikes += 1
+    if profile.strikes >= 3:
+        profile.baneado = True
         messages.error(request, f"{target.username} alcanzó 3 strikes y fue baneado.")
     else:
-        messages.warning(request, f"Strike aplicado a {target.username}: {perfil.strikes}/3.")
-    perfil.save(update_fields=["strikes", "baneado"])
+        messages.warning(request, f"Strike aplicado a {target.username}: {profile.strikes}/3.")
+    profile.save(update_fields=["strikes", "baneado"])
     return redirect("/?view=admin")
 
 
 @require_POST
 def toggle_ban(request, user_id):
     target = get_object_or_404(User, pk=user_id)
-    if not _moderation_allowed(request, target):
-        return HttpResponseForbidden("No tenés permisos para moderar esta cuenta.")
+    if not _es_admin(request) or not _required_permission(request, target, "ban"):
+        return HttpResponseForbidden("No tenés permiso para banear esta cuenta.")
 
-    perfil = getattr(target, "perfilusuario", None)
-    if not perfil:
-        perfil = PerfilUsuario.objects.create(usuario=target)
+    profile = getattr(target, "perfilusuario", None)
+    if not profile:
+        return HttpResponseForbidden("La cuenta no tiene perfil.")
 
-    perfil.baneado = not perfil.baneado
-    if not perfil.baneado:
-        perfil.strikes = 0
-        messages.success(request, f"{target.username} fue desbaneado y sus strikes se reiniciaron.")
+    profile.baneado = not profile.baneado
+    if not profile.baneado:
+        profile.strikes = 0
+        messages.success(request, f"{target.username} fue desbaneado.")
     else:
         messages.error(request, f"{target.username} fue baneado.")
-    perfil.save(update_fields=["strikes", "baneado"])
+    profile.save(update_fields=["strikes", "baneado"])
+    return redirect("/?view=admin")
+
+
+@require_POST
+def delete_user(request, user_id):
+    target = get_object_or_404(User, pk=user_id)
+    if not _es_admin(request) or not _required_permission(request, target, "delete"):
+        return HttpResponseForbidden("No tenés permiso para eliminar esta cuenta.")
+    if target == request.user:
+        return HttpResponseForbidden("No podés eliminar tu propia cuenta desde este panel.")
+
+    username = target.username
+    target.delete()
+    messages.error(request, f"La cuenta '{username}' fue eliminada.")
     return redirect("/?view=admin")
 
 
 @require_POST
 def delete_game(request, game_id):
-    if not _es_staff(request):
-        return HttpResponseForbidden("No tenés permisos para eliminar juegos.")
+    if not _es_admin(request):
+        return HttpResponseForbidden("No tenés acceso a este panel.")
+
+    if not (
+        is_dios(request.user)
+        or has_admin_permission(request.user, "eliminar_juegos")
+    ):
+        return HttpResponseForbidden("No tenés permiso para eliminar juegos.")
+
     game = get_object_or_404(Juego, pk=game_id)
     title = game.titulo
     game.delete()
@@ -271,17 +341,6 @@ def delete_game(request, game_id):
 
 @require_POST
 def toggle_staff(request, user_id):
-    if not request.user.is_authenticated or not request.user.is_superuser:
-        return HttpResponseForbidden("Solo el superadministrador puede asignar staff.")
-
-    target = get_object_or_404(User, pk=user_id)
-    if target.is_superuser:
-        return HttpResponseForbidden("Los superusuarios no necesitan esta acción.")
-
-    target.is_staff = not target.is_staff
-    target.save(update_fields=["is_staff"])
-    messages.info(
-        request,
-        f"{target.username} ahora {'forma parte del staff' if target.is_staff else 'ya no forma parte del staff'}.",
+    return HttpResponseForbidden(
+        "Los administradores especiales se gestionan exclusivamente desde Dios."
     )
-    return redirect("/?view=admin")

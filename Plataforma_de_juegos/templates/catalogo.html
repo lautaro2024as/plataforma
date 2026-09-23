@@ -16,8 +16,8 @@
         <nav class="flex items-center gap-1">
           <button data-view="store" onclick="showView('store')" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-store"></i><span class="hidden xl:inline"> Tienda</span></button>
           {% if user.is_authenticated %}<button data-view="library" onclick="showView('library')" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-layer-group"></i><span class="hidden xl:inline"> Biblioteca</span></button>{% endif %}
-          {% if user.is_superuser or perfil and perfil.rol == "desarrollador" %}<button data-view="dev" onclick="showView('dev')" class="px-3 py-2 rounded-xl text-xs font-bold text-purple-300 hover:bg-purple-950/40 border border-purple-500/30"><i class="fa-solid fa-laptop-code"></i><span class="hidden xl:inline"> Portal Dev</span></button>{% endif %}
-          {% if user.is_staff %}<button data-view="admin" onclick="showView('admin')" class="px-3 py-2 rounded-xl text-xs font-bold text-amber-300 hover:bg-amber-950/40 border border-amber-500/30"><i class="fa-solid fa-shield-halved"></i><span class="hidden xl:inline"> Panel</span></button>{% endif %}
+          {% if perfil and perfil.rol == "desarrollador" %}<button data-view="dev" onclick="showView('dev')" class="px-3 py-2 rounded-xl text-xs font-bold text-purple-300 hover:bg-purple-950/40 border border-purple-500/30"><i class="fa-solid fa-laptop-code"></i><span class="hidden xl:inline"> Portal Dev</span></button>{% endif %}
+          {% if is_dios or is_admin_especial %}<button data-view="admin" onclick="showView('admin')" class="px-3 py-2 rounded-xl text-xs font-bold text-amber-300 hover:bg-amber-950/40 border border-amber-500/30"><i class="fa-solid fa-shield-halved"></i><span class="hidden xl:inline"> Panel</span></button>{% endif %}
         </nav>
 
         <button onclick="toggleCartDrawer()" class="relative p-2.5 bg-slate-900 border border-slate-800 rounded-xl"><i class="fa-solid fa-cart-shopping"></i><span class="absolute -top-1.5 -right-1.5 bg-cyan-500 text-slate-950 font-bold text-xs w-5 h-5 rounded-full flex items-center justify-center">{{ cart_items|length }}</span></button>
@@ -25,7 +25,7 @@
         <div class="relative group">
           <button class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
             <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center border border-cyan-500/30">{% if user.is_authenticated %}{{ user.username|first|upper }}{% else %}👤{% endif %}</div>
-            <div class="hidden sm:block text-left"><span class="block text-xs font-bold text-slate-200">{% if user.is_authenticated %}{{ user.username }}{% else %}Visitante{% endif %}</span><span class="text-[10px] text-emerald-400 uppercase font-bold">{% if user.is_superuser %}Administrador{% elif user.is_staff %}Staff{% elif perfil and perfil.rol == "desarrollador" %}Desarrollador{% elif user.is_authenticated %}Usuario{% else %}Sin sesión{% endif %}</span></div>
+            <div class="hidden sm:block text-left"><span class="block text-xs font-bold text-slate-200">{% if user.is_authenticated %}{{ user.username }}{% else %}Visitante{% endif %}</span><span class="text-[10px] text-emerald-400 uppercase font-bold">{% if is_dios %}Dios{% elif is_admin_especial %}Administrador{% elif perfil and perfil.rol == "desarrollador" %}Desarrollador{% elif user.is_authenticated %}Usuario{% else %}Sin sesión{% endif %}</span></div>
             <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
           </button>
           <div class="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 hidden group-hover:block z-50">
@@ -36,8 +36,8 @@
             {% else %}
               <div class="px-3 py-2 border-b border-slate-800"><p class="text-xs font-bold">{{ user.username }}</p><p class="text-[10px] text-slate-500">{{ user.email }}</p></div>
               <button onclick="showView('library')" class="w-full text-left px-3 py-2 rounded-xl text-xs">Mi biblioteca</button>
-              {% if user.is_superuser or perfil and perfil.rol == "desarrollador" %}<button onclick="showView('dev')" class="w-full text-left px-3 py-2 rounded-xl text-xs text-purple-300">Portal desarrollador</button>{% endif %}
-              {% if user.is_staff %}<button onclick="showView('admin')" class="w-full text-left px-3 py-2 rounded-xl text-xs text-amber-300">Panel de administración</button>{% endif %}
+              {% if perfil and perfil.rol == "desarrollador" %}<button onclick="showView('dev')" class="w-full text-left px-3 py-2 rounded-xl text-xs text-purple-300">Portal desarrollador</button>{% endif %}
+              {% if is_dios %}<a href="{% url 'dios:dashboard' %}" class="block w-full px-3 py-2 rounded-xl text-xs text-amber-300">Panel Dios</a>{% elif is_admin_especial %}<button onclick="showView('admin')" class="w-full text-left px-3 py-2 rounded-xl text-xs text-amber-300">Panel de administración</button>{% endif %}
               <form method="post" action="{% url 'clientes:logout' %}" class="border-t border-slate-800 mt-1 pt-1">{% csrf_token %}<button class="w-full text-left px-3 py-2 rounded-xl text-xs text-red-400">Cerrar sesión</button></form>
             {% endif %}
           </div>
@@ -144,7 +144,7 @@
   {% if user.is_staff %}
   <section id="viewGodPanel" class="hidden-view space-y-7">
     <div class="bg-gradient-to-br from-slate-900 via-amber-950/30 to-slate-950 rounded-3xl p-6 border border-amber-500/25">
-      <span class="text-xs font-bold uppercase text-amber-300">{% if user.is_superuser %}Superadministrador{% else %}Staff / Moderador{% endif %}</span>
+      <span class="text-xs font-bold uppercase text-amber-300">{% if is_dios %}DIOS{% else %}Administrador Especial{% endif %}</span>
       <h2 class="text-3xl font-black text-amber-100 mt-1">Panel de Administración</h2>
       <p class="text-sm text-amber-200/70">Usuarios, strikes, baneos y moderación del catálogo.</p>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
@@ -163,11 +163,11 @@
           <div class="border border-slate-800 rounded-xl p-3 bg-slate-950/70">
             <div class="flex justify-between gap-3">
               <div><p class="text-sm font-bold text-slate-200">{{ row.user.username }}</p><p class="text-[10px] text-slate-500">{{ row.user.email }} · {{ row.role_label }}</p><p class="text-[10px] mt-1 {% if row.banned %}text-red-400{% else %}text-slate-400{% endif %}">Strikes {{ row.strikes }}/3{% if row.banned %} · BANEADO{% endif %}</p></div>
-              {% if row.can_moderate %}
+              {% if row.can_strike or row.can_ban or row.can_delete %}
               <div class="flex flex-wrap justify-end gap-1">
-                <form method="post" action="{% url 'administrador:strike' row.user.id %}">{% csrf_token %}<button class="px-2 py-1 rounded bg-amber-500/15 text-amber-300 text-[10px]">+ Strike</button></form>
-                <form method="post" action="{% url 'administrador:ban' row.user.id %}">{% csrf_token %}<button class="px-2 py-1 rounded bg-red-500/10 text-red-300 text-[10px]">{% if row.banned %}Desbanear{% else %}Banear{% endif %}</button></form>
-                {% if user.is_superuser %}<form method="post" action="{% url 'administrador:staff' row.user.id %}">{% csrf_token %}<button class="px-2 py-1 rounded bg-blue-500/10 text-blue-300 text-[10px]">{% if row.user.is_staff %}Quitar staff{% else %}Dar staff{% endif %}</button></form>{% endif %}
+                {% if row.can_strike %}<form method="post" action="{% url 'administrador:strike' row.user.id %}">{% csrf_token %}<button class="px-2 py-1 rounded bg-amber-500/15 text-amber-300 text-[10px]">+ Strike</button></form>{% endif %}
+                {% if row.can_ban %}<form method="post" action="{% url 'administrador:ban' row.user.id %}">{% csrf_token %}<button class="px-2 py-1 rounded bg-red-500/10 text-red-300 text-[10px]">{% if row.banned %}Desbanear{% else %}Banear{% endif %}</button></form>{% endif %}
+                {% if row.can_delete %}<form method="post" action="{% url 'administrador:eliminar_usuario' row.user.id %}" onsubmit="return confirm('¿Eliminar definitivamente esta cuenta?');">{% csrf_token %}<button class="px-2 py-1 rounded bg-red-950/60 text-red-200 text-[10px]">Eliminar</button></form>{% endif %}
               </div>
               {% endif %}
             </div>
@@ -182,7 +182,7 @@
           {% for game in admin_games %}
           <div class="border border-slate-800 rounded-xl p-3 bg-slate-950/70 flex items-center justify-between gap-3">
             <div><p class="text-sm font-bold text-slate-200">{{ game.titulo }}</p><p class="text-[10px] text-slate-500">{{ game.desarrollador.nombre_estudio|default:game.desarrollador.usuario.username }} · {{ game.estado }}</p></div>
-            <form method="post" action="{% url 'administrador:eliminar_juego' game.id %}" onsubmit="return confirm('¿Eliminar definitivamente este juego?');">{% csrf_token %}<button class="px-3 py-2 rounded-lg bg-red-500/10 text-red-300 text-[10px] font-bold">Eliminar</button></form>
+            {% if is_dios or admin_permissions and admin_permissions.puede_eliminar_juegos %}<form method="post" action="{% url 'administrador:eliminar_juego' game.id %}" onsubmit="return confirm('¿Eliminar definitivamente este juego?');">{% csrf_token %}<button class="px-3 py-2 rounded-lg bg-red-500/10 text-red-300 text-[10px] font-bold">Eliminar</button></form>{% endif %}
           </div>
           {% empty %}<p class="text-xs text-slate-500">No hay juegos.</p>{% endfor %}
         </div>

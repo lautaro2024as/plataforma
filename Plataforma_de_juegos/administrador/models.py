@@ -6,6 +6,7 @@ class PerfilUsuario(models.Model):
     ROLES = (
         ("jugador", "Jugador / Usuario"),
         ("desarrollador", "Desarrollador Indie"),
+        ("administrador", "Administrador Especial"),
     )
 
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -30,20 +31,14 @@ class Juego(models.Model):
     titulo = models.CharField(max_length=150)
     categoria = models.CharField(max_length=40, default="Indie")
     precio = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    precio_original = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
+    precio_original = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     imagen_url = models.URLField(blank=True)
     descripcion = models.TextField(blank=True)
     calificacion = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
     tipo_clave = models.CharField(max_length=80, default="Steam Key Global")
     etiqueta_mas_18 = models.BooleanField(default=False)
     archivo_exe = models.FileField(upload_to="juegos_exe/", null=True, blank=True)
-    estado = models.CharField(
-        max_length=20,
-        choices=ESTADOS,
-        default="cuarentena",
-    )
+    estado = models.CharField(max_length=20, choices=ESTADOS, default="cuarentena")
     fecha_subida = models.DateTimeField(auto_now_add=True)
     desarrollador = models.ForeignKey(
         PerfilUsuario,
@@ -58,9 +53,7 @@ class Juego(models.Model):
 class AlertaMalware(models.Model):
     juego = models.ForeignKey(Juego, on_delete=models.CASCADE)
     fecha_alerta = models.DateTimeField(auto_now_add=True)
-    detalles_analisis = models.TextField(
-        help_text="Detalles del escáner (ej. VirusTotal)"
-    )
+    detalles_analisis = models.TextField(help_text="Detalles del escáner (ej. VirusTotal)")
     resuelta = models.BooleanField(default=False)
 
     def __str__(self):
@@ -71,15 +64,15 @@ class LicenciaCompra(models.Model):
     ORIGENES = (
         ("compra", "Compra"),
         ("desarrollador", "Gratis - Desarrollador"),
-        ("admin", "Gratis - Administrador"),
+        ("admin", "Gratis - Administrador / Dios"),
     )
 
     jugador = models.ForeignKey(
         PerfilUsuario,
         on_delete=models.CASCADE,
-        limit_choices_to={"rol": "jugador"},
+        related_name="licencias",
     )
-    juego = models.ForeignKey(Juego, on_delete=models.CASCADE)
+    juego = models.ForeignKey(Juego, on_delete=models.CASCADE, related_name="licencias")
     edicion = models.CharField(max_length=20, default="Estándar")
     clave = models.CharField(max_length=40, unique=True)
     origen = models.CharField(max_length=20, choices=ORIGENES, default="compra")

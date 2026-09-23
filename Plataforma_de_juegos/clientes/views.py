@@ -10,6 +10,7 @@ from django.utils.text import slugify
 from django.views.decorators.http import require_POST
 
 from administrador.models import Juego, LicenciaCompra, PerfilUsuario
+from dios.authz import is_dios
 
 
 EDITION_EXTRA = {
@@ -64,11 +65,7 @@ def login_view(request):
         messages.error(request, "Tu cuenta está baneada y no puede iniciar sesión.")
         return redirect("/?view=store")
 
-    authenticated = authenticate(
-        request,
-        username=user.username,
-        password=password,
-    )
+    authenticated = authenticate(request, username=user.username, password=password)
     if authenticated is None:
         messages.error(request, "Correo o contraseña incorrectos.")
         return redirect("/?view=store")
@@ -165,7 +162,6 @@ def carrito_agregar(request, game_id):
     cart.append({"game_id": game.id, "edition": edition})
     request.session["nexus_cart"] = cart
     request.session.modified = True
-
     messages.success(request, f'"{game.titulo} ({edition})" se agregó al carrito.')
     return redirect("/?view=store")
 
@@ -188,8 +184,8 @@ def checkout(request):
         return redirect("/?view=store")
 
     profile = _profile(request.user)
-    if not profile:
-        messages.error(request, "Tu cuenta no tiene un perfil NEXUS.")
+    if not profile or profile.rol not in ("jugador", "desarrollador"):
+        messages.error(request, "Esta cuenta no puede realizar compras.")
         return redirect("/?view=store")
 
     cart = request.session.get("nexus_cart", [])
@@ -221,10 +217,7 @@ def checkout(request):
 
     request.session["nexus_cart"] = []
     request.session.modified = True
-    messages.success(
-        request,
-        f"Compra completada: {created} clave(s) agregada(s) a tu biblioteca.",
-    )
+    messages.success(request, f"Compra completada: {created} clave(s) agregada(s) a tu biblioteca.")
     return redirect("/?view=library")
 
 
@@ -241,22 +234,21 @@ def generar_clave(request, game_id):
     if edition not in EDITION_EXTRA:
         edition = "Estándar"
 
-    is_admin = request.user.is_superuser
-    is_owner = bool(
+    is_owner = (
         profile.rol == "desarrollador"
         and game.desarrollador_id == profile.id
     )
 
-    if not (is_admin or is_owner):
-        messages.error(request, "No tenés permiso para generar una clave gratis de este juego.")
+    if not (is_dios(request.user) or is_owner):
+        messages.error(request, "Solo podés generar claves gratis para tus propios juegos.")
         return redirect("/?view=store")
 
     LicenciaCompra.objects.create(
         jugador=profile,
         juego=game,
         edicion=edition,
-        clave=_make_key("GOD" if is_admin else "DEV"),
-        origen="admin" if is_admin else "desarrollador",
+        clave=_make_key("GOD" if is_dios(request.user) else "DEV"),
+        origen="admin" if is_dios(request.user) else "desarrollador",
         monto_pagado=0,
     )
     messages.success(request, f'Clave gratis de "{game.titulo}" ({edition}) generada.')

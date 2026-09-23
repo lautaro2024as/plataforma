@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'administrador',
     'clientes',
     'desarrollador',
+    'dios',
 ]
 
 MIDDLEWARE = [
@@ -46,6 +47,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'dios.context_processors.account_roles',
             ],
         },
     },
