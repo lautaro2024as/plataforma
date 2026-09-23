@@ -190,3 +190,66 @@
     </div>
   </section>
   {% endif %}
+
+  </section>
+</main>
+
+<div id="cartDrawer" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="toggleCartDrawer()"></div>
+  <aside class="absolute inset-y-0 right-0 w-screen max-w-md bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
+    <div class="p-6 border-b border-slate-800 flex justify-between"><h3 class="text-xl font-bold">Tu carrito</h3><button onclick="toggleCartDrawer()"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="flex-1 p-6 space-y-3 overflow-y-auto">
+      {% for item in cart_items %}
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><p class="font-bold text-white">{{ item.game.titulo }}</p><p class="text-xs text-slate-500">{{ item.edition }}</p><p class="text-sm font-black text-emerald-400 mt-1">US&#36; {{ item.price|floatformat:2 }}</p><form method="post" action="{% url 'clientes:carrito_eliminar' item.index %}">{% csrf_token %}<button class="text-[10px] text-red-400 mt-1">Quitar</button></form></div>
+      {% empty %}<div class="text-center py-12 text-slate-500">Tu carrito está vacío.</div>{% endfor %}
+    </div>
+    <div class="p-6 border-t border-slate-800">
+      <div class="flex justify-between mb-4"><span class="text-slate-400">Total</span><span class="text-2xl font-black text-emerald-400">US&#36; {{ cart_total|floatformat:2 }}</span></div>
+      {% if user.is_authenticated %}
+      <form method="post" action="{% url 'clientes:checkout' %}">{% csrf_token %}<button {% if not cart_items %}disabled{% endif %} class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-black disabled:opacity-40">Pagar y obtener claves</button></form>
+      {% else %}<button onclick="toggleCartDrawer();openAuthModal('login')" class="w-full py-3 rounded-xl bg-cyan-500 text-slate-950 font-black">Iniciar sesión para comprar</button>{% endif %}
+    </div>
+  </aside>
+</div>
+
+<div id="authModal" class="fixed inset-0 z-[60] hidden modal-backdrop flex items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 sm:p-8 relative">
+    <button onclick="closeAuthModal()" class="absolute top-5 right-5 text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+    <div class="flex border-b border-slate-800 mb-6 text-xs font-semibold">
+      <button onclick="switchAuthTab('login')" id="authTabLogin" class="flex-1 pb-3 text-cyan-400 border-b-2 border-cyan-400">Entrar</button>
+      <button onclick="switchAuthTab('regUser')" id="authTabRegUser" class="flex-1 pb-3 text-slate-400">Usuario</button>
+      <button onclick="switchAuthTab('regDev')" id="authTabRegDev" class="flex-1 pb-3 text-slate-400">Developer</button>
+    </div>
+    <form id="formLogin" method="post" action="{% url 'clientes:login' %}" class="space-y-4">{% csrf_token %}<input name="email" type="email" required placeholder="Correo" class="w-full glass-input rounded-xl px-4 py-3"><input name="password" type="password" required placeholder="Contraseña" class="w-full glass-input rounded-xl px-4 py-3"><button class="w-full py-3 bg-cyan-500 text-slate-950 font-bold rounded-xl">Entrar a NEXUS</button></form>
+    <form id="formRegUser" method="post" action="{% url 'clientes:registro_usuario' %}" class="hidden space-y-4">{% csrf_token %}<input name="name" type="text" required placeholder="Gamertag" class="w-full glass-input rounded-xl px-4 py-3"><input name="email" type="email" required placeholder="Correo" class="w-full glass-input rounded-xl px-4 py-3"><input name="fecha_nacimiento" type="date" class="w-full glass-input rounded-xl px-4 py-3"><input name="password" type="password" required placeholder="Contraseña" class="w-full glass-input rounded-xl px-4 py-3"><button class="w-full py-3 bg-emerald-500 text-slate-950 font-bold rounded-xl">Crear cuenta</button></form>
+    <form id="formRegDev" method="post" action="{% url 'clientes:registro_desarrollador' %}" class="hidden space-y-4">{% csrf_token %}<input name="studio" type="text" required placeholder="Estudio / desarrollador" class="w-full glass-input rounded-xl px-4 py-3"><input name="email" type="email" required placeholder="Correo" class="w-full glass-input rounded-xl px-4 py-3"><input name="tax_id" type="text" placeholder="Tax ID" class="w-full glass-input rounded-xl px-4 py-3"><input name="password" type="password" required placeholder="Contraseña" class="w-full glass-input rounded-xl px-4 py-3"><button class="w-full py-3 bg-purple-600 text-white font-bold rounded-xl">Registrarse como developer</button></form>
+  </div>
+</div>
+
+<div id="gameDetailModal" class="fixed inset-0 z-[60] hidden modal-backdrop flex items-center justify-center p-4">
+  <div id="gameDetailContent" class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-3xl p-6 sm:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto"></div>
+</div>
+
+{% if user.is_authenticated and perfil and perfil.rol == "desarrollador" %}
+<div id="publishGameModal" class="fixed inset-0 z-[60] hidden modal-backdrop flex items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg p-6 relative max-h-[90vh] overflow-y-auto">
+    <button onclick="closePublishGameModal()" class="absolute top-5 right-5 text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+    <h3 class="text-2xl font-black text-white">Publicar nuevo juego</h3>
+    <form method="post" enctype="multipart/form-data" action="{% url 'desarrollador:publicar' %}" class="space-y-4 mt-5">{% csrf_token %}
+      <input name="titulo" required placeholder="Título" class="w-full glass-input rounded-xl px-4 py-3">
+      <div class="grid grid-cols-2 gap-3"><select name="categoria" class="glass-input rounded-xl px-3 py-3"><option>Acción</option><option>Estrategia</option><option>Indie</option><option>Aventura</option></select><input name="precio" type="number" min="0" step="0.01" required placeholder="Precio USD" class="glass-input rounded-xl px-4 py-3"></div>
+      <input name="precio_original" type="number" min="0" step="0.01" placeholder="Precio original" class="w-full glass-input rounded-xl px-4 py-3">
+      <input name="imagen_url" type="url" placeholder="URL portada" class="w-full glass-input rounded-xl px-4 py-3">
+      <textarea name="descripcion" rows="4" required placeholder="Descripción" class="w-full glass-input rounded-xl px-4 py-3"></textarea>
+      <div class="grid grid-cols-2 gap-3"><input name="calificacion" type="number" min="0" max="5" step="0.1" value="0" class="glass-input rounded-xl px-4 py-3"><input name="tipo_clave" value="Steam Key Global" class="glass-input rounded-xl px-4 py-3"></div>
+      <label class="flex gap-2 items-center text-xs"><input name="etiqueta_mas_18" type="checkbox">Contenido +18</label>
+      <input name="archivo_exe" type="file" class="text-xs text-slate-400">
+      <button class="w-full py-3 bg-purple-600 text-white font-bold rounded-xl">Publicar en tienda</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<div id="nexusUrls" data-cart-base="{% url 'clientes:carrito_agregar' 0 %}" data-free-key-base="{% url 'clientes:generar_clave' 0 %}"></div>
+{{ game_data|json_script:"nexus-game-data" }}
+{% endblock %}
