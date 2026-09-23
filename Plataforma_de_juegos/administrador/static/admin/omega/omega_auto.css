@@ -1,9 +1,0 @@
-/* OMEGA automatic character layer. The main loop lives in omega_admin.css. */
-.omega-character-status-card{position:relative}.omega-character-status{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px}.omega-state{display:grid;grid-template-columns:12px 1fr auto;align-items:center;gap:8px;padding:10px 11px;border:1px solid rgba(255,255,255,.075);border-radius:9px;background:rgba(1,2,14,.38);font-size:10px}.omega-state i{width:7px;height:7px;border-radius:50%;background:var(--omega-green);box-shadow:0 0 9px rgba(53,255,155,.7);animation:omegaStatePulse 2.1s ease-in-out infinite}.omega-state b{font-size:9px;color:var(--omega-c);letter-spacing:1px}.omega-character-hint{padding:0 14px 14px;color:#97aac0;font-size:10px;line-height:1.45}.omega-character-status-card:after{content:'AUTO LOOP // ORGANIC';position:absolute;right:15px;bottom:12px;font-size:8px;letter-spacing:2px;color:var(--omega-p);opacity:.72}@keyframes omegaStatePulse{50%{transform:scale(1.45);opacity:.62}}
-/* Keep the actor stable; sizing and animation are owned by omega_admin.css. */
-#omega-actor{will-change:transform,filter;pointer-events:none!important}
-#omega-actor svg{will-change:transform,filter}
-/* Blink timing is driven by JS classes. */
-#omega-actor::before{z-index:3}
-@media(max-width:1050px){.omega-character-status{grid-template-columns:1fr 1fr}}@media(max-width:700px){.omega-character-status{grid-template-columns:1fr}.omega-character-hint{padding-bottom:48px}}
-@media(prefers-reduced-motion:reduce){.omega-state i{animation:none!important}}
