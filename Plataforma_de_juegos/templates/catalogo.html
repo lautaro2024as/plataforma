@@ -96,3 +96,97 @@
       </div>
     </div>
   </section>
+
+  <section id="viewLibrary" class="hidden-view space-y-6">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div><h2 class="text-2xl font-black text-white"><i class="fa-solid fa-layer-group text-cyan-400 mr-2"></i>Mi Biblioteca</h2><p class="text-xs text-slate-400">Tus claves quedan guardadas en tu cuenta.</p></div>
+      <span class="text-cyan-400 font-black">{{ licencias|length }}</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for licencia in licencias %}
+      <article class="glass-card rounded-2xl p-4 space-y-3">
+        <h3 class="font-black text-white">{{ licencia.juego.titulo }}</h3>
+        <p class="text-xs text-slate-400">{{ licencia.edicion }} · {{ licencia.get_origen_display }}</p>
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><span class="block text-[10px] uppercase text-slate-500">Clave</span><code class="text-sm font-bold text-cyan-300 break-all">{{ licencia.clave }}</code></div>
+        <button onclick="copyKey('{{ licencia.clave|escapejs }}')" class="w-full py-2.5 rounded-xl bg-cyan-500 text-slate-950 font-black text-xs">Copiar clave</button>
+      </article>
+      {% empty %}<div class="col-span-full glass-panel rounded-2xl p-10 text-center text-slate-400">Todavía no tenés juegos.</div>{% endfor %}
+    </div>
+  </section>
+
+  {% if user.is_superuser or perfil and perfil.rol == "desarrollador" %}
+  <section id="viewDevPortal" class="hidden-view space-y-7">
+    <div class="bg-purple-950/20 border border-purple-800/40 rounded-3xl p-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div><span class="text-xs font-bold uppercase text-purple-300">Portal de desarrolladores</span><h2 class="text-3xl font-black text-white mt-1">Centro de Publicación</h2><p class="text-sm text-slate-400">Gestioná tus juegos, precios y publicaciones.</p></div>
+        {% if perfil and perfil.rol == "desarrollador" %}<button onclick="openPublishGameModal()" class="px-5 py-3 rounded-xl bg-purple-600 text-white font-bold">+ Publicar juego</button>{% endif %}
+      </div>
+      <div class="grid sm:grid-cols-3 gap-4 mt-6">
+        <div class="bg-slate-900/80 rounded-2xl p-4"><span class="text-xs text-slate-400">Juegos</span><span class="block text-2xl font-black text-purple-400">{{ mis_juegos|length }}</span></div>
+        <div class="bg-slate-900/80 rounded-2xl p-4"><span class="text-xs text-slate-400">Ingresos 85%</span><span class="block text-2xl font-black text-emerald-400">US&#36; {{ dev_revenue|floatformat:2 }}</span></div>
+        <div class="bg-slate-900/80 rounded-2xl p-4"><span class="text-xs text-slate-400">Estado</span><span class="block text-sm font-bold text-emerald-400 mt-1">Activo</span></div>
+      </div>
+    </div>
+
+    <div class="space-y-3">
+      {% for game in mis_juegos %}
+      <article class="glass-card rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div><h3 class="font-black text-white">{{ game.titulo }}</h3><p class="text-xs text-slate-400">{{ game.categoria }} · {{ game.estado }} · {{ game.fecha_subida|date:"d/m/Y H:i" }}</p></div>
+        {% if perfil and perfil.rol == "desarrollador" %}
+        <form method="post" action="{% url 'desarrollador:editar_precio' game.id %}" class="flex gap-2">{% csrf_token %}<input name="precio" type="number" min="0" step="0.01" value="{{ game.precio }}" class="glass-input rounded-xl px-3 py-2 w-28"><button class="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold">Actualizar</button></form>
+        {% endif %}
+      </article>
+      {% empty %}<div class="glass-panel rounded-2xl p-8 text-center text-slate-500">No hay juegos para mostrar.</div>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if user.is_staff %}
+  <section id="viewGodPanel" class="hidden-view space-y-7">
+    <div class="bg-gradient-to-br from-slate-900 via-amber-950/30 to-slate-950 rounded-3xl p-6 border border-amber-500/25">
+      <span class="text-xs font-bold uppercase text-amber-300">{% if user.is_superuser %}Superadministrador{% else %}Staff / Moderador{% endif %}</span>
+      <h2 class="text-3xl font-black text-amber-100 mt-1">Panel de Administración</h2>
+      <p class="text-sm text-amber-200/70">Usuarios, strikes, baneos y moderación del catálogo.</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+        <div class="bg-slate-900/90 rounded-2xl p-4"><span class="text-xs text-slate-400">Juegos</span><span class="block text-2xl font-black text-amber-400">{{ admin_metrics.total_games }}</span></div>
+        <div class="bg-slate-900/90 rounded-2xl p-4"><span class="text-xs text-slate-400">Usuarios</span><span class="block text-2xl font-black text-cyan-400">{{ admin_metrics.total_users }}</span></div>
+        <div class="bg-slate-900/90 rounded-2xl p-4"><span class="text-xs text-slate-400">Devs</span><span class="block text-2xl font-black text-purple-400">{{ admin_metrics.total_devs }}</span></div>
+        <div class="bg-slate-900/90 rounded-2xl p-4"><span class="text-xs text-slate-400">Comisión</span><span class="block text-2xl font-black text-emerald-400">US&#36; {{ admin_metrics.platform_revenue|floatformat:2 }}</span></div>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-7">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+        <h3 class="font-bold text-white mb-4"><i class="fa-solid fa-user-shield text-amber-400 mr-2"></i>Usuarios</h3>
+        <div class="space-y-3 max-h-[450px] overflow-y-auto">
+          {% for row in admin_user_rows %}
+          <div class="border border-slate-800 rounded-xl p-3 bg-slate-950/70">
+            <div class="flex justify-between gap-3">
+              <div><p class="text-sm font-bold text-slate-200">{{ row.user.username }}</p><p class="text-[10px] text-slate-500">{{ row.user.email }} · {{ row.role_label }}</p><p class="text-[10px] mt-1 {% if row.banned %}text-red-400{% else %}text-slate-400{% endif %}">Strikes {{ row.strikes }}/3{% if row.banned %} · BANEADO{% endif %}</p></div>
+              {% if row.can_moderate %}
+              <div class="flex flex-wrap justify-end gap-1">
+                <form method="post" action="{% url 'administrador:strike' row.user.id %}">{% csrf_token %}<button class="px-2 py-1 rounded bg-amber-500/15 text-amber-300 text-[10px]">+ Strike</button></form>
+                <form method="post" action="{% url 'administrador:ban' row.user.id %}">{% csrf_token %}<button class="px-2 py-1 rounded bg-red-500/10 text-red-300 text-[10px]">{% if row.banned %}Desbanear{% else %}Banear{% endif %}</button></form>
+                {% if user.is_superuser %}<form method="post" action="{% url 'administrador:staff' row.user.id %}">{% csrf_token %}<button class="px-2 py-1 rounded bg-blue-500/10 text-blue-300 text-[10px]">{% if row.user.is_staff %}Quitar staff{% else %}Dar staff{% endif %}</button></form>{% endif %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}<p class="text-xs text-slate-500">No hay usuarios.</p>{% endfor %}
+        </div>
+      </div>
+
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+        <h3 class="font-bold text-white mb-4"><i class="fa-solid fa-trash-can text-red-400 mr-2"></i>Juegos</h3>
+        <div class="space-y-3 max-h-[450px] overflow-y-auto">
+          {% for game in admin_games %}
+          <div class="border border-slate-800 rounded-xl p-3 bg-slate-950/70 flex items-center justify-between gap-3">
+            <div><p class="text-sm font-bold text-slate-200">{{ game.titulo }}</p><p class="text-[10px] text-slate-500">{{ game.desarrollador.nombre_estudio|default:game.desarrollador.usuario.username }} · {{ game.estado }}</p></div>
+            <form method="post" action="{% url 'administrador:eliminar_juego' game.id %}" onsubmit="return confirm('¿Eliminar definitivamente este juego?');">{% csrf_token %}<button class="px-3 py-2 rounded-lg bg-red-500/10 text-red-300 text-[10px] font-bold">Eliminar</button></form>
+          </div>
+          {% empty %}<p class="text-xs text-slate-500">No hay juegos.</p>{% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
