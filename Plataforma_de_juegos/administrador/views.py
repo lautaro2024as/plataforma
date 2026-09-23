@@ -226,7 +226,7 @@ def catalogo_juegos(request):
 
     return render(
         request,
-        "catalogo.html",
+        "plataforma/catalogo.html",
         {
             "juegos": juegos_list,
             "licencias": licencias,
