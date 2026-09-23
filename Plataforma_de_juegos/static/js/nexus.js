@@ -212,6 +212,12 @@
 
         const initial = document.body.dataset.activeView || "store";
         showView(["store", "library", "dev", "admin"].includes(initial) ? initial : "store");
+
+        const authTab = new URL(window.location.href).searchParams.get("auth");
+        if (["login", "regUser", "regDev"].includes(authTab)) {
+            openAuthModal(authTab);
+        }
+
         filterCatalog();
 
         qsa(".modal-backdrop").forEach(backdrop => {
