@@ -81,13 +81,13 @@
       <h2 class="text-xl font-bold text-white mb-5"><i class="fa-solid fa-gamepad text-cyan-400 mr-2"></i>Catálogo de videojuegos</h2>
       <div id="gamesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {% for game in juegos %}
-        <article class="game-card glass-card rounded-2xl overflow-hidden" data-id="{{ game.id }}" data-title="{{ game.titulo|escape }}" data-developer="{{ game.desarrollador.nombre_estudio|default_if_none:game.desarrollador.usuario.username }}" data-category="{{ game.categoria }}" data-price="{{ game.precio }}" data-rating="{{ game.calificacion }}">
+        <article class="game-card glass-card rounded-2xl overflow-hidden" data-id="{{ game.id }}" data-title="{{ game.titulo|escape }}" data-developer="{% if game.desarrollador.nombre_estudio %}{{ game.desarrollador.nombre_estudio }}{% else %}{{ game.desarrollador.usuario.username }}{% endif %}" data-category="{{ game.categoria }}" data-price="{{ game.precio }}" data-rating="{{ game.calificacion }}">
           <button onclick="openGameModal({{ game.id }})" class="w-full text-left">
             <div class="h-44 bg-slate-900 overflow-hidden">{% if game.imagen_url %}<img src="{{ game.imagen_url }}" alt="{{ game.titulo }}" class="w-full h-full object-cover">{% else %}<div class="w-full h-full flex items-center justify-center text-cyan-400/70"><i class="fa-solid fa-gamepad text-4xl"></i></div>{% endif %}</div>
             <div class="p-4 space-y-3">
               <div class="flex justify-between gap-2"><span class="text-[10px] uppercase font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-2 py-1">{{ game.categoria }}</span><span class="text-[11px] text-amber-300"><i class="fa-solid fa-star"></i> {{ game.calificacion }}</span></div>
               <h3 class="font-black text-white truncate">{{ game.titulo }}</h3>
-              <p class="text-xs text-slate-400 truncate"><i class="fa-solid fa-code text-purple-400 mr-1"></i>{{ game.desarrollador.nombre_estudio|default:game.desarrollador.usuario.username }}</p>
+              <p class="text-xs text-slate-400 truncate"><i class="fa-solid fa-code text-purple-400 mr-1"></i>{% if game.desarrollador.nombre_estudio %}{{ game.desarrollador.nombre_estudio }}{% else %}{{ game.desarrollador.usuario.username }}{% endif %}</p>
               <div class="flex justify-between items-end"><span class="text-xl font-black text-emerald-400">US&#36; {{ game.precio }}</span><span class="text-xs text-cyan-300 font-bold">Ver →</span></div>
             </div>
           </button>

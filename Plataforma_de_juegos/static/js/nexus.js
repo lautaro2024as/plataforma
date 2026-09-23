@@ -131,7 +131,7 @@
                         <span class="glass-pill rounded-lg px-3 py-2 text-slate-300"><i class="fa-brands fa-steam text-cyan-400 mr-1"></i>${escapeHtml(game.key_type)}</span>
                         <span class="glass-pill rounded-lg px-3 py-2 text-amber-300"><i class="fa-solid fa-star mr-1"></i>${escapeHtml(game.rating)}</span>
                     </div>
-                    <form method="post" action="${escapeHtml(window.NEXUS_URLS.cartBase.replace("__ID__", game.id))}" class="space-y-3">
+                    <form method="post" action="${escapeHtml(window.NEXUS_URLS.cartBase.replace("/0/", "/" + game.id + "/"))}" class="space-y-3">
                         <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(csrfToken())}">
                         <label class="block text-xs font-bold text-slate-300">Edición</label>
                         <select name="edition" class="glass-input w-full rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:outline-none">
@@ -144,7 +144,7 @@
                         </button>
                     </form>
                     ${game.can_free ? `
-                        <form method="post" action="${escapeHtml(window.NEXUS_URLS.freeKeyBase.replace("__ID__", game.id))}">
+                        <form method="post" action="${escapeHtml(window.NEXUS_URLS.freeKeyBase.replace("/0/", "/" + game.id + "/"))}">
                             <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(csrfToken())}">
                             <input type="hidden" name="edition" value="Estándar">
                             <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl">
