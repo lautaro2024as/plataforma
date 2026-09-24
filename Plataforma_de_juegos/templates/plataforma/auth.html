@@ -1,0 +1,35 @@
+{% extends "plataforma/base.html" %}
+{% load static %}
+{% block title %}NEXUS - Autenticación{% endblock %}
+
+{% block content %}
+<header class="sticky top-0 z-40 backdrop-blur-xl bg-slate-900/90 border-b border-slate-800/80">
+  <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+    <a href="{% url 'administrador:catalogo' %}" class="flex items-center gap-3"><div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 flex items-center justify-center text-slate-950 text-xl font-black">N</div><div><div class="text-xl font-black tracking-wider text-white">NEXUS</div><div class="text-[10px] text-slate-400 font-semibold tracking-widest uppercase">Digital Marketplace</div></div></a>
+    <a href="{% url 'administrador:catalogo' %}" class="px-4 py-2 rounded-xl bg-slate-800 text-xs font-bold hover:bg-slate-700">Volver a tienda</a>
+  </div>
+</header>
+<main class="relative z-10 max-w-xl mx-auto px-4 py-10 w-full">
+  {% if messages %}<div class="space-y-2 mb-5">{% for message in messages %}<div class="glass-panel rounded-xl px-4 py-3 text-xs font-semibold text-cyan-100">{{ message }}</div>{% endfor %}</div>{% endif %}
+  <div class="glass-panel rounded-3xl p-6 sm:p-8">
+    <div class="flex border-b border-slate-800 mb-6 text-sm font-semibold">
+      <a href="?tab=login" class="flex-1 text-center pb-3 {% if tab == "login" %}text-cyan-400 border-b-2 border-cyan-400{% else %}text-slate-400{% endif %}">Iniciar sesión</a>
+      <a href="?tab=regUser" class="flex-1 text-center pb-3 {% if tab == "regUser" %}text-emerald-400 border-b-2 border-emerald-400{% else %}text-slate-400{% endif %}">Crear usuario</a>
+      <a href="?tab=regDev" class="flex-1 text-center pb-3 {% if tab == "regDev" %}text-purple-400 border-b-2 border-purple-400{% else %}text-slate-400{% endif %}">Developer</a>
+    </div>
+    {% if tab == "login" %}
+      <h1 class="text-3xl font-black text-white">Bienvenido de nuevo</h1>
+      <p class="text-sm text-slate-400 mt-2 mb-6">Entrá con el correo y contraseña de tu cuenta.</p>
+      <form method="post" action="{% url 'clientes:login' %}" class="space-y-4">{% csrf_token %}<input name="email" type="email" required placeholder="Correo" class="w-full glass-input rounded-xl px-4 py-3"><input name="password" type="password" required placeholder="Contraseña" class="w-full glass-input rounded-xl px-4 py-3"><button class="w-full py-3 rounded-xl bg-cyan-500 text-slate-950 font-black">Iniciar sesión</button></form>
+    {% elif tab == "regUser" %}
+      <h1 class="text-3xl font-black text-white">Crear cuenta</h1>
+      <p class="text-sm text-slate-400 mt-2 mb-6">Tu cuenta de jugador quedará lista para comprar y usar la biblioteca.</p>
+      <form method="post" action="{% url 'clientes:registro_usuario' %}" class="space-y-4">{% csrf_token %}<input name="name" type="text" required placeholder="Gamertag" class="w-full glass-input rounded-xl px-4 py-3"><input name="email" type="email" required placeholder="Correo" class="w-full glass-input rounded-xl px-4 py-3"><input name="fecha_nacimiento" type="date" class="w-full glass-input rounded-xl px-4 py-3"><input name="password" type="password" required placeholder="Contraseña" class="w-full glass-input rounded-xl px-4 py-3"><button class="w-full py-3 rounded-xl bg-emerald-500 text-slate-950 font-black">Crear cuenta</button></form>
+    {% else %}
+      <h1 class="text-3xl font-black text-white">Registrar desarrollador</h1>
+      <p class="text-sm text-slate-400 mt-2 mb-6">Creá un perfil para publicar tus propios juegos.</p>
+      <form method="post" action="{% url 'clientes:registro_desarrollador' %}" class="space-y-4">{% csrf_token %}<input name="studio" type="text" required placeholder="Estudio / desarrollador" class="w-full glass-input rounded-xl px-4 py-3"><input name="email" type="email" required placeholder="Correo" class="w-full glass-input rounded-xl px-4 py-3"><input name="tax_id" type="text" placeholder="Tax ID" class="w-full glass-input rounded-xl px-4 py-3"><input name="password" type="password" required placeholder="Contraseña" class="w-full glass-input rounded-xl px-4 py-3"><button class="w-full py-3 rounded-xl bg-purple-600 text-white font-black">Registrarme como developer</button></form>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}
