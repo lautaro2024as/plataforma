@@ -115,7 +115,7 @@ def login_view(request):
     authenticated = authenticate(request, username=user.username, password=password)
     if authenticated is None:
         messages.error(request, "Correo o contraseña incorrectos.")
-        return redirect("administrador:catalogo")
+        return redirect("/usuarios/autenticacion/?tab=login")
 
     login(request, authenticated)
     messages.success(request, f"Bienvenido a NEXUS, {authenticated.username}.")
@@ -238,7 +238,7 @@ def checkout(request):
     cart = request.session.get("nexus_cart", [])
     if not cart:
         messages.error(request, "Tu carrito está vacío.")
-        return redirect("administrador:catalogo")
+        return redirect("clientes:carrito")
 
     created = 0
     for item in cart:
