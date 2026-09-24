@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
 from django.views.decorators.http import require_POST
 
@@ -51,6 +51,54 @@ def _unique_username(value):
     return candidate
 
 
+
+
+def _cart_context(request):
+    cart_items = []
+    cart_total = 0
+
+    for index, item in enumerate(request.session.get("nexus_cart", [])):
+        try:
+            game = Juego.objects.get(
+                pk=int(item.get("game_id", 0)),
+                estado="publicado",
+            )
+        except (Juego.DoesNotExist, ValueError, TypeError, AttributeError, KeyError):
+            continue
+
+        edition = item.get("edition", "Estándar")
+        extra = EDITION_EXTRA.get(edition, 0)
+        price = game.precio + extra
+        cart_items.append({"index": index, "game": game, "edition": edition, "price": price})
+        cart_total += price
+
+    return {"cart_items": cart_items, "cart_total": cart_total}
+
+
+def autenticacion(request):
+    if request.user.is_authenticated:
+        return redirect("administrador:catalogo")
+    return render(request, "plataforma/auth.html", {"tab": request.GET.get("tab", "login")})
+
+
+@login_required
+def carrito(request):
+    return render(request, "plataforma/carrito.html", _cart_context(request))
+
+
+@login_required
+def biblioteca(request):
+    profile = _profile(request.user)
+    if not profile:
+        messages.error(request, "Tu cuenta no tiene un perfil NEXUS.")
+        return redirect("clientes:auth")
+    licencias = list(
+        LicenciaCompra.objects.filter(jugador=profile)
+        .select_related("juego")
+        .order_by("-fecha_compra")
+    )
+    return render(request, "plataforma/biblioteca.html", {"licencias": licencias, "perfil": profile})
+
 @require_POST
 def login_view(request):
     email = request.POST.get("email", "").strip().lower()
@@ -59,20 +107,20 @@ def login_view(request):
     user = User.objects.filter(email__iexact=email).first()
     if not user:
         messages.error(request, "No existe ninguna cuenta con ese correo.")
-        return redirect("/?view=store")
+        return redirect("clientes:auth?tab=login")
 
     if _banned(user):
         messages.error(request, "Tu cuenta está baneada y no puede iniciar sesión.")
-        return redirect("/?view=store")
+        return redirect("clientes:auth?tab=login")
 
     authenticated = authenticate(request, username=user.username, password=password)
     if authenticated is None:
         messages.error(request, "Correo o contraseña incorrectos.")
-        return redirect("/?view=store")
+        return redirect("clientes:auth?tab=login")
 
     login(request, authenticated)
     messages.success(request, f"Bienvenido a NEXUS, {authenticated.username}.")
-    return redirect("/?view=store")
+    return redirect("clientes:auth?tab=login")
 
 
 @require_POST
@@ -84,11 +132,11 @@ def register_user(request):
 
     if not name or not email or not password:
         messages.error(request, "Completá nombre, correo y contraseña.")
-        return redirect("/?view=store")
+        return redirect("clientes:auth?tab=regUser")
 
     if User.objects.filter(email__iexact=email).exists():
         messages.error(request, "Ese correo ya está registrado.")
-        return redirect("/?view=store")
+        return redirect("clientes:auth?tab=regUser")
 
     birth_date = None
     if birth:
@@ -96,7 +144,7 @@ def register_user(request):
             birth_date = date.fromisoformat(birth)
         except ValueError:
             messages.error(request, "La fecha de nacimiento no es válida.")
-            return redirect("/?view=store")
+            return redirect("clientes:auth?tab=regUser")
 
     user = User.objects.create_user(
         username=_unique_username(name),
@@ -110,7 +158,7 @@ def register_user(request):
     )
     login(request, user)
     messages.success(request, f"Cuenta creada. Bienvenido, {user.username}.")
-    return redirect("/?view=store")
+    return redirect("clientes:auth?tab=regUser")
 
 
 @require_POST
@@ -122,11 +170,11 @@ def register_developer(request):
 
     if not studio or not email or not password:
         messages.error(request, "Completá estudio, correo y contraseña.")
-        return redirect("/?view=store")
+        return redirect("clientes:auth?tab=regDev")
 
     if User.objects.filter(email__iexact=email).exists():
         messages.error(request, "Ese correo ya está registrado.")
-        return redirect("/?view=store")
+        return redirect("clientes:auth?tab=regDev")
 
     user = User.objects.create_user(
         username=_unique_username(studio),
@@ -141,14 +189,14 @@ def register_developer(request):
     )
     login(request, user)
     messages.success(request, f'Estudio "{studio}" registrado como desarrollador.')
-    return redirect("/?view=dev")
+    return redirect("administrador:catalogo")
 
 
 @require_POST
 def logout_view(request):
     logout(request)
     messages.info(request, "Sesión cerrada correctamente.")
-    return redirect("/?view=store")
+    return redirect("administrador:catalogo")
 
 
 @require_POST
@@ -163,7 +211,7 @@ def carrito_agregar(request, game_id):
     request.session["nexus_cart"] = cart
     request.session.modified = True
     messages.success(request, f'"{game.titulo} ({edition})" se agregó al carrito.')
-    return redirect("/?view=store")
+    return redirect("clientes:carrito")
 
 
 @require_POST
@@ -173,7 +221,7 @@ def carrito_eliminar(request, index):
         cart.pop(index)
         request.session["nexus_cart"] = cart
         request.session.modified = True
-    return redirect("/?view=store")
+    return redirect("clientes:carrito")
 
 
 @login_required
@@ -181,17 +229,17 @@ def carrito_eliminar(request, index):
 def checkout(request):
     if _banned(request.user):
         messages.error(request, "Una cuenta baneada no puede comprar.")
-        return redirect("/?view=store")
+        return redirect("administrador:catalogo")
 
     profile = _profile(request.user)
     if not profile or profile.rol not in ("jugador", "desarrollador"):
         messages.error(request, "Esta cuenta no puede realizar compras.")
-        return redirect("/?view=store")
+        return redirect("administrador:catalogo")
 
     cart = request.session.get("nexus_cart", [])
     if not cart:
         messages.error(request, "Tu carrito está vacío.")
-        return redirect("/?view=store")
+        return redirect("administrador:catalogo")
 
     created = 0
     for item in cart:
@@ -218,7 +266,7 @@ def checkout(request):
     request.session["nexus_cart"] = []
     request.session.modified = True
     messages.success(request, f"Compra completada: {created} clave(s) agregada(s) a tu biblioteca.")
-    return redirect("/?view=library")
+    return redirect("clientes:biblioteca")
 
 
 @login_required
@@ -228,7 +276,7 @@ def generar_clave(request, game_id):
     profile = _profile(request.user)
     if not profile:
         messages.error(request, "Tu cuenta no tiene un perfil NEXUS.")
-        return redirect("/?view=store")
+        return redirect("administrador:catalogo")
 
     edition = request.POST.get("edition", "Estándar")
     if edition not in EDITION_EXTRA:
@@ -241,7 +289,7 @@ def generar_clave(request, game_id):
 
     if not (is_dios(request.user) or is_owner):
         messages.error(request, "Solo podés generar claves gratis para tus propios juegos.")
-        return redirect("/?view=store")
+        return redirect("administrador:catalogo")
 
     LicenciaCompra.objects.create(
         jugador=profile,
@@ -252,4 +300,4 @@ def generar_clave(request, game_id):
         monto_pagado=0,
     )
     messages.success(request, f'Clave gratis de "{game.titulo}" ({edition}) generada.')
-    return redirect("/?view=library")
+    return redirect("clientes:biblioteca")
