@@ -81,7 +81,6 @@ def autenticacion(request):
     return render(request, "plataforma/auth.html", {"tab": request.GET.get("tab", "login")})
 
 
-@login_required
 def carrito(request):
     return render(request, "plataforma/carrito.html", _cart_context(request))
 
@@ -107,20 +106,20 @@ def login_view(request):
     user = User.objects.filter(email__iexact=email).first()
     if not user:
         messages.error(request, "No existe ninguna cuenta con ese correo.")
-        return redirect("clientes:auth?tab=login")
+        return redirect("/usuarios/autenticacion/?tab=login")
 
     if _banned(user):
         messages.error(request, "Tu cuenta está baneada y no puede iniciar sesión.")
-        return redirect("clientes:auth?tab=login")
+        return redirect("/usuarios/autenticacion/?tab=login")
 
     authenticated = authenticate(request, username=user.username, password=password)
     if authenticated is None:
         messages.error(request, "Correo o contraseña incorrectos.")
-        return redirect("clientes:auth?tab=login")
+        return redirect("administrador:catalogo")
 
     login(request, authenticated)
     messages.success(request, f"Bienvenido a NEXUS, {authenticated.username}.")
-    return redirect("clientes:auth?tab=login")
+    return redirect("administrador:catalogo")
 
 
 @require_POST
@@ -132,11 +131,11 @@ def register_user(request):
 
     if not name or not email or not password:
         messages.error(request, "Completá nombre, correo y contraseña.")
-        return redirect("clientes:auth?tab=regUser")
+        return redirect("/usuarios/autenticacion/?tab=regUser")
 
     if User.objects.filter(email__iexact=email).exists():
         messages.error(request, "Ese correo ya está registrado.")
-        return redirect("clientes:auth?tab=regUser")
+        return redirect("/usuarios/autenticacion/?tab=regUser")
 
     birth_date = None
     if birth:
@@ -144,7 +143,7 @@ def register_user(request):
             birth_date = date.fromisoformat(birth)
         except ValueError:
             messages.error(request, "La fecha de nacimiento no es válida.")
-            return redirect("clientes:auth?tab=regUser")
+            return redirect("/usuarios/autenticacion/?tab=regUser")
 
     user = User.objects.create_user(
         username=_unique_username(name),
@@ -158,7 +157,7 @@ def register_user(request):
     )
     login(request, user)
     messages.success(request, f"Cuenta creada. Bienvenido, {user.username}.")
-    return redirect("clientes:auth?tab=regUser")
+    return redirect("administrador:catalogo")
 
 
 @require_POST
@@ -170,11 +169,11 @@ def register_developer(request):
 
     if not studio or not email or not password:
         messages.error(request, "Completá estudio, correo y contraseña.")
-        return redirect("clientes:auth?tab=regDev")
+        return redirect("/usuarios/autenticacion/?tab=regDev")
 
     if User.objects.filter(email__iexact=email).exists():
         messages.error(request, "Ese correo ya está registrado.")
-        return redirect("clientes:auth?tab=regDev")
+        return redirect("/usuarios/autenticacion/?tab=regDev")
 
     user = User.objects.create_user(
         username=_unique_username(studio),
