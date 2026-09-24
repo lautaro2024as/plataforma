@@ -15,12 +15,12 @@
       <div class="flex items-center gap-2">
         <nav class="flex items-center gap-1">
           <a data-view="store" href="{% url 'administrador:catalogo' %}?view=store" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-store"></i><span class="hidden xl:inline"> Tienda</span></a>
-          {% if user.is_authenticated %}<a data-view="library" href="{% url 'administrador:catalogo' %}?view=library" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-layer-group"></i><span class="hidden xl:inline"> Biblioteca</span></a>{% endif %}
+          {% if user.is_authenticated %}<a data-view="library" href="{% url 'clientes:biblioteca' %}" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-layer-group"></i><span class="hidden xl:inline"> Biblioteca</span></a>{% endif %}
           {% if perfil and perfil.rol == "desarrollador" %}<a data-view="dev" href="{% url 'administrador:catalogo' %}?view=dev" class="px-3 py-2 rounded-xl text-xs font-bold text-purple-300 hover:bg-purple-950/40 border border-purple-500/30"><i class="fa-solid fa-laptop-code"></i><span class="hidden xl:inline"> Portal Dev</span></a>{% endif %}
           {% if is_dios or is_admin_especial %}<a data-view="admin" href="{% url 'administrador:panel' %}?view=admin" class="px-3 py-2 rounded-xl text-xs font-bold text-amber-300 hover:bg-amber-950/40 border border-amber-500/30"><i class="fa-solid fa-shield-halved"></i><span class="hidden xl:inline"> Panel</span></a>{% endif %}
         </nav>
 
-        <button onclick="toggleCartDrawer()" class="relative p-2.5 bg-slate-900 border border-slate-800 rounded-xl"><i class="fa-solid fa-cart-shopping"></i><span class="absolute -top-1.5 -right-1.5 bg-cyan-500 text-slate-950 font-bold text-xs w-5 h-5 rounded-full flex items-center justify-center">{{ cart_items|length }}</span></button>
+        <a href="{% url 'clientes:carrito' %}" aria-label="Abrir carrito" class="relative p-2.5 bg-slate-900 border border-slate-800 rounded-xl hover:border-cyan-500/50"><i class="fa-solid fa-cart-shopping"></i><span class="absolute -top-1.5 -right-1.5 bg-cyan-500 text-slate-950 font-bold text-xs w-5 h-5 rounded-full flex items-center justify-center">{{ cart_items|length }}</span></a>
 
         <div class="relative group">
           <button class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
@@ -30,12 +30,12 @@
           </button>
           <div class="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 hidden group-hover:block z-50">
             {% if not user.is_authenticated %}
-              <a href="{% url 'administrador:catalogo' %}?auth=login" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-cyan-400"><i class="fa-solid fa-right-to-bracket mr-2"></i>Iniciar sesión</a>
-              <a href="{% url 'administrador:catalogo' %}?auth=regUser" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-emerald-400"><i class="fa-solid fa-user-plus mr-2"></i>Crear usuario</a>
-              <a href="{% url 'administrador:catalogo' %}?auth=regDev" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-purple-400"><i class="fa-solid fa-laptop-code mr-2"></i>Registrar desarrollador</a>
+              <a href="{% url 'clientes:auth' %}?tab=login" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-cyan-400"><i class="fa-solid fa-right-to-bracket mr-2"></i>Iniciar sesión</a>
+              <a href="{% url 'clientes:auth' %}?tab=regUser" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-emerald-400"><i class="fa-solid fa-user-plus mr-2"></i>Crear usuario</a>
+              <a href="{% url 'clientes:auth' %}?tab=regDev" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-purple-400"><i class="fa-solid fa-laptop-code mr-2"></i>Registrar desarrollador</a>
             {% else %}
               <div class="px-3 py-2 border-b border-slate-800"><p class="text-xs font-bold">{{ user.username }}</p><p class="text-[10px] text-slate-500">{{ user.email }}</p></div>
-              <a href="{% url 'administrador:catalogo' %}?view=library" class="block w-full text-left px-3 py-2 rounded-xl text-xs">Mi biblioteca</a>
+              <a href="{% url 'clientes:biblioteca' %}" class="block w-full text-left px-3 py-2 rounded-xl text-xs">Mi biblioteca</a>
               {% if perfil and perfil.rol == "desarrollador" %}<a href="{% url 'administrador:catalogo' %}?view=dev" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-purple-300">Portal desarrollador</a>{% endif %}
               {% if is_dios %}<a href="{% url 'dios:dashboard' %}" class="block w-full px-3 py-2 rounded-xl text-xs text-amber-300">Panel Dios</a>{% elif is_admin_especial %}<a href="{% url 'administrador:panel' %}?view=admin" class="block w-full text-left px-3 py-2 rounded-xl text-xs text-amber-300">Panel de administración</a>{% endif %}
               <form method="post" action="{% url 'clientes:logout' %}" class="border-t border-slate-800 mt-1 pt-1">{% csrf_token %}<button class="w-full text-left px-3 py-2 rounded-xl text-xs text-red-400">Cerrar sesión</button></form>
@@ -193,24 +193,6 @@
 
   </section>
 </main>
-
-<div id="cartDrawer" class="fixed inset-0 z-50 hidden">
-  <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="toggleCartDrawer()"></div>
-  <aside class="absolute inset-y-0 right-0 w-screen max-w-md bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
-    <div class="p-6 border-b border-slate-800 flex justify-between"><h3 class="text-xl font-bold">Tu carrito</h3><button onclick="toggleCartDrawer()"><i class="fa-solid fa-xmark"></i></button></div>
-    <div class="flex-1 p-6 space-y-3 overflow-y-auto">
-      {% for item in cart_items %}
-      <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><p class="font-bold text-white">{{ item.game.titulo }}</p><p class="text-xs text-slate-500">{{ item.edition }}</p><p class="text-sm font-black text-emerald-400 mt-1">US&#36; {{ item.price|floatformat:2 }}</p><form method="post" action="{% url 'clientes:carrito_eliminar' item.index %}">{% csrf_token %}<button class="text-[10px] text-red-400 mt-1">Quitar</button></form></div>
-      {% empty %}<div class="text-center py-12 text-slate-500">Tu carrito está vacío.</div>{% endfor %}
-    </div>
-    <div class="p-6 border-t border-slate-800">
-      <div class="flex justify-between mb-4"><span class="text-slate-400">Total</span><span class="text-2xl font-black text-emerald-400">US&#36; {{ cart_total|floatformat:2 }}</span></div>
-      {% if user.is_authenticated %}
-      <form method="post" action="{% url 'clientes:checkout' %}">{% csrf_token %}<button {% if not cart_items %}disabled{% endif %} class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-black disabled:opacity-40">Pagar y obtener claves</button></form>
-      {% else %}<button onclick="toggleCartDrawer();openAuthModal('login')" class="w-full py-3 rounded-xl bg-cyan-500 text-slate-950 font-black">Iniciar sesión para comprar</button>{% endif %}
-    </div>
-  </aside>
-</div>
 
 <div id="authModal" class="fixed inset-0 z-[60] hidden modal-backdrop flex items-center justify-center p-4">
   <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 sm:p-8 relative">
