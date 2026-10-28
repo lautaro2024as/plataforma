@@ -25,3 +25,6 @@ python manage.py test
 ```
 
 En producción, configurar `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=false` y las variables `DB_*`. Las credenciales que estuvieron en el historial público deben rotarse fuera de GitHub.
+
+## Corrección de migración previa
+La migración de datos `0004_demo_game.py` ya fallaba en una base vacía porque el modelo histórico de `User` no expone `set_unusable_password()`. Se corrigió usando `make_password(None)` para que una instalación limpia pueda migrar y ejecutar las pruebas. La corrección está solo en esta rama.

@@ -7,7 +7,7 @@
       <div><h1 class="text-3xl font-black text-white">Mi perfil</h1><p class="text-sm text-slate-400 mt-1">Datos personales de {{ request.user.username }}</p></div>
       <a href="{% url 'clientes:pedidos' %}" class="px-4 py-2 rounded-xl bg-slate-800 text-xs font-bold">Mis pedidos</a>
     </div>
-    {% if messages %}{% for message in messages %}<p class="mb-3 text-sm text-cyan-300">{{ message }}</p>{% endfor %}{% endif %}
+    {% if messages %}<div class="space-y-2 mb-5">{% for message in messages %}<div class="glass-panel rounded-xl px-4 py-3 text-xs font-semibold {% if message.tags == 'success' %}text-emerald-200 border border-emerald-500/30 bg-emerald-500/10{% elif message.tags == 'error' %}text-red-200 border border-red-500/30 bg-red-500/10{% elif message.tags == 'warning' %}text-amber-200 border border-amber-500/30 bg-amber-500/10{% else %}text-cyan-100 border border-cyan-500/20 bg-cyan-500/10{% endif %}">{{ message }}</div>{% endfor %}</div>{% endif %}
     <form method="post" class="space-y-4">{% csrf_token %}
       {% for field in form %}
         <div><label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-slate-300 mb-1">{{ field.label }}</label>{{ field }}{% if field.errors %}<p class="text-sm text-red-300">{{ field.errors|join:", " }}</p>{% endif %}</div>

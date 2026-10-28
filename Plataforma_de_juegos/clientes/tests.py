@@ -63,6 +63,16 @@ class ClienteWorkflowTests(TestCase):
         self.assertEqual(self.player_profile.direccion, "Av. Nueva 55")
         self.assertEqual(self.player_profile.ciudad, "Ituzaingó")
 
+    def test_profile_form_rejects_invalid_phone(self):
+        self.client.force_login(self.player_user)
+        response = self.client.post(reverse("clientes:perfil"), {
+            "telefono": "teléfono-no-válido", "direccion": "Calle 1",
+            "ciudad": "Morón", "fecha_nacimiento": "",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.player_profile.refresh_from_db()
+        self.assertEqual(self.player_profile.telefono, "111222333")
+
     def test_cart_requires_login_and_removal_checks_ownership(self):
         response = self.client.get(reverse("clientes:carrito"))
         self.assertEqual(response.status_code, 302)
