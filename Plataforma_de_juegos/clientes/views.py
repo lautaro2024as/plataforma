@@ -38,7 +38,7 @@ def _banned(user):
     return bool(profile and profile.baneado)
 
 
-def _make_key(prefix="NEXUS"):
+def _make_key(prefix="ARGGAMES"):
     while True:
         value = prefix + "-" + "-".join(secrets.token_hex(2).upper() for _ in range(3))
         if not LicenciaCompra.objects.filter(clave=value).exists():
@@ -86,7 +86,7 @@ def autenticacion(request):
 def carrito(request):
     profile = _profile(request.user)
     if not profile:
-        messages.error(request, "Tu cuenta no tiene un perfil NEXUS.")
+        messages.error(request, "Tu cuenta no tiene un perfil ARG GAMES.")
         return redirect("clientes:auth")
     return render(request, "plataforma/carrito.html", _cart_context(profile))
 
@@ -95,7 +95,7 @@ def carrito(request):
 def biblioteca(request):
     profile = _profile(request.user)
     if not profile:
-        messages.error(request, "Tu cuenta no tiene un perfil NEXUS.")
+        messages.error(request, "Tu cuenta no tiene un perfil ARG GAMES.")
         return redirect("clientes:auth")
     licencias = LicenciaCompra.objects.filter(jugador=profile).select_related("juego").order_by("-fecha_compra")
     return render(request, "plataforma/biblioteca.html", {"licencias": licencias, "perfil": profile})
@@ -117,7 +117,7 @@ def login_view(request):
         messages.error(request, "Correo o contraseña incorrectos.")
         return redirect("/usuarios/autenticacion/?tab=login")
     login(request, authenticated)
-    messages.success(request, f"Bienvenido a NEXUS, {authenticated.username}.")
+    messages.success(request, f"Bienvenido a ARG GAMES, {authenticated.username}.")
     return redirect("administrador:catalogo")
 
 
@@ -290,7 +290,7 @@ def checkout(request):
 def perfil(request):
     profile = _profile(request.user)
     if not profile:
-        messages.error(request, "Tu cuenta no tiene un perfil NEXUS.")
+        messages.error(request, "Tu cuenta no tiene un perfil ARG GAMES.")
         return redirect("clientes:auth")
     if request.method == "POST":
         form = PerfilUsuarioForm(request.POST, instance=profile)
@@ -330,7 +330,7 @@ def generar_clave(request, game_id):
     game = get_object_or_404(Juego, pk=game_id, estado="publicado")
     profile = _profile(request.user)
     if not profile:
-        messages.error(request, "Tu cuenta no tiene un perfil NEXUS.")
+        messages.error(request, "Tu cuenta no tiene un perfil ARG GAMES.")
         return redirect("administrador:catalogo")
     edition = request.POST.get("edition", "Estándar")
     if edition not in EDITION_EXTRA:

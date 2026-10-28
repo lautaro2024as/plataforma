@@ -1,14 +1,14 @@
 {% extends "plataforma/base.html" %}
 {% load static %}
-{% block title %}NEXUS - Gaming Marketplace{% endblock %}
+{% block title %}ARG GAMES - Gaming Marketplace{% endblock %}
 
 {% block content %}
 <header class="sticky top-0 z-40 backdrop-blur-xl bg-slate-900/80 border-b border-slate-800/80">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between gap-3 min-h-20 py-3">
-      <a href="{% url 'administrador:catalogo' %}" class="flex items-center gap-3 text-left" aria-label="Ir a la página principal de NEXUS">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 flex items-center justify-center text-slate-950 text-xl font-black">N</div>
-        <div><div class="text-xl font-black tracking-wider text-white">NEXUS <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">KEYS</span></div><div class="text-[10px] text-slate-400 font-semibold tracking-widest uppercase">Digital Marketplace</div></div>
+      <a href="{% url 'administrador:catalogo' %}" class="flex items-center gap-3 text-left" aria-label="Ir a la página principal de ARG GAMES">
+        <img class="arg-header-logo" src="{% static 'images/arg-games-logo.webp' %}" alt="ARG GAMES — waifus y logotipo" onerror="this.style.display='none'">
+        <div><div class="text-xl font-black tracking-wider text-white">ARG GAMES <span class="text-xs px-2 py-0.5 rounded-full bg-blue-400/15 text-blue-200 border border-blue-300/30">GAMING STORE</span></div><div class="text-[10px] text-slate-400 font-semibold tracking-widest uppercase">Videojuegos · Claves digitales</div></div>
       </a>
       <div class="flex-1 max-w-md hidden md:block"><div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i><input id="searchInput" type="search" placeholder="Buscar juegos o desarrolladores..." class="w-full glass-input rounded-2xl pl-11 pr-4 py-2.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none"></div></div>
 
@@ -49,14 +49,26 @@
 
 {% if messages %}<div class="fixed bottom-5 right-5 z-[80] space-y-2 max-w-md pointer-events-none">{% for message in messages %}<div class="toast-message glass-panel rounded-xl px-4 py-3 text-xs font-semibold text-cyan-200">{{ message }}</div>{% endfor %}</div>{% endif %}
 
-<main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+<main class="arg-catalog-shell relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
   <section id="viewStore" class="space-y-10">
+    <div class="arg-brand-hero">
+      <div class="arg-brand-copy">
+        <span class="arg-eyebrow"><i class="fa-brands fa-steam mr-2"></i>ARG GAMES STORE</span>
+        <h1>Tu próxima partida empieza acá.</h1>
+        <p>Descubrí juegos, explorá ofertas y sumá nuevos títulos a tu biblioteca.</p>
+        <a href="#gamesGrid" class="arg-primary-action"><i class="fa-solid fa-gamepad mr-2"></i>Explorar catálogo</a>
+      </div>
+      <a class="arg-brand-art" href="{% url 'administrador:catalogo' %}?view=store" aria-label="ARG GAMES — volver al inicio">
+        <img src="{% static 'images/arg-games-logo.webp' %}" alt="Logotipo ARG GAMES con waifus de estilo anime" onerror="this.style.display='none'">
+      </a>
+    </div>
+
     <div class="glass-panel rounded-3xl p-6 md:p-10">
       {% if juegos %}
         {% with hero=juegos.0 %}
         <div class="grid md:grid-cols-2 gap-8 items-center">
           <div>
-            <span class="inline-flex px-3 py-1.5 rounded-full glass-pill text-cyan-300 text-xs font-bold uppercase"><i class="fa-solid fa-fire text-amber-400 mr-2"></i>Catálogo NEXUS</span>
+            <span class="inline-flex px-3 py-1.5 rounded-full glass-pill text-cyan-300 text-xs font-bold uppercase"><i class="fa-solid fa-fire text-amber-400 mr-2"></i>Catálogo ARG GAMES</span>
             <h1 class="text-3xl sm:text-5xl font-black text-white mt-4">{{ hero.titulo }}</h1>
             <p class="text-slate-300 text-sm sm:text-base mt-4 max-w-xl">{{ hero.descripcion|default:"Explorá videojuegos y claves digitales en nuestra tienda." }}</p>
             <div class="flex items-end gap-3 mt-5">{% if hero.precio_original and hero.precio_original > hero.precio %}<span class="text-slate-500 line-through">US&#36; {{ hero.precio_original }}</span>{% endif %}<span class="text-3xl font-black text-emerald-400">US&#36; {{ hero.precio }} USD</span></div>
@@ -221,14 +233,14 @@
       <button onclick="switchAuthTab('regUser')" id="authTabRegUser" class="flex-1 pb-3 text-slate-400">Usuario</button>
       <button onclick="switchAuthTab('regDev')" id="authTabRegDev" class="flex-1 pb-3 text-slate-400">Developer</button>
     </div>
-    <form id="formLogin" method="post" action="{% url 'clientes:login' %}" class="space-y-4">{% csrf_token %}<input name="email" type="email" required placeholder="Correo" class="w-full glass-input rounded-xl px-4 py-3"><input name="password" type="password" required placeholder="Contraseña" class="w-full glass-input rounded-xl px-4 py-3"><button class="w-full py-3 bg-cyan-500 text-slate-950 font-bold rounded-xl">Entrar a NEXUS</button></form>
+    <form id="formLogin" method="post" action="{% url 'clientes:login' %}" class="space-y-4">{% csrf_token %}<input name="email" type="email" required placeholder="Correo" class="w-full glass-input rounded-xl px-4 py-3"><input name="password" type="password" required placeholder="Contraseña" class="w-full glass-input rounded-xl px-4 py-3"><button class="w-full py-3 bg-cyan-500 text-slate-950 font-bold rounded-xl">Entrar a ARG GAMES</button></form>
     <form id="formRegUser" method="post" action="{% url 'clientes:registro_usuario' %}" class="hidden space-y-4">{% csrf_token %}<input name="name" type="text" required placeholder="Gamertag" class="w-full glass-input rounded-xl px-4 py-3"><input name="email" type="email" required placeholder="Correo" class="w-full glass-input rounded-xl px-4 py-3"><input name="fecha_nacimiento" type="date" class="w-full glass-input rounded-xl px-4 py-3"><input name="password" type="password" required placeholder="Contraseña" class="w-full glass-input rounded-xl px-4 py-3"><button class="w-full py-3 bg-emerald-500 text-slate-950 font-bold rounded-xl">Crear cuenta</button></form>
     <form id="formRegDev" method="post" action="{% url 'clientes:registro_desarrollador' %}" class="hidden space-y-4">{% csrf_token %}<input name="studio" type="text" required placeholder="Estudio / desarrollador" class="w-full glass-input rounded-xl px-4 py-3"><input name="email" type="email" required placeholder="Correo" class="w-full glass-input rounded-xl px-4 py-3"><input name="tax_id" type="text" placeholder="Tax ID" class="w-full glass-input rounded-xl px-4 py-3"><input name="password" type="password" required placeholder="Contraseña" class="w-full glass-input rounded-xl px-4 py-3"><button class="w-full py-3 bg-purple-600 text-white font-bold rounded-xl">Registrarse como developer</button></form>
   </div>
 </div>
 
-<div id="gameDetailModal" class="fixed inset-0 z-[60] hidden modal-backdrop flex items-center justify-center p-4">
-  <div id="gameDetailContent" class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-3xl p-6 sm:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto"></div>
+<div id="gameDetailModal" class="arg-detail-overlay fixed inset-0 z-[60] hidden flex justify-end" aria-hidden="true">
+  <aside id="gameDetailContent" class="arg-game-drawer" role="dialog" aria-modal="false" aria-label="Detalle del juego"></aside>
 </div>
 
 {% if user.is_authenticated and perfil and perfil.rol == "desarrollador" %}
@@ -252,7 +264,7 @@
 </div>
 {% endif %}
 
-<div id="nexusUrls" data-cart-base="{% url 'clientes:carrito_agregar' 0 %}" data-free-key-base="{% url 'clientes:generar_clave' 0 %}"></div>
+<div id="argGamesUrls" data-home-url="{% url 'administrador:catalogo' %}?view=store" data-logo-url="{% static 'images/arg-games-logo.webp' %}" data-cart-base="{% url 'clientes:carrito_agregar' 0 %}" data-free-key-base="{% url 'clientes:generar_clave' 0 %}"></div>
 {% csrf_token %}
-{{ game_data|json_script:"nexus-game-data" }}
+{{ game_data|json_script:"arg-games-data" }}
 {% endblock %}
