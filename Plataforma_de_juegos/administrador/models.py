@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator
 from django.db import models
 
 
@@ -14,6 +15,9 @@ class PerfilUsuario(models.Model):
     nombre_estudio = models.CharField(max_length=150, blank=True)
     tax_id = models.CharField(max_length=100, blank=True)
     fecha_nacimiento = models.DateField(null=True, blank=True)
+    telefono = models.CharField(max_length=30, blank=True)
+    direccion = models.CharField(max_length=255, blank=True)
+    ciudad = models.CharField(max_length=100, blank=True)
     strikes = models.PositiveSmallIntegerField(default=0)
     baneado = models.BooleanField(default=False)
 
@@ -39,6 +43,7 @@ class Juego(models.Model):
     etiqueta_mas_18 = models.BooleanField(default=False)
     archivo_exe = models.FileField(upload_to="juegos_exe/", null=True, blank=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default="cuarentena")
+    stock = models.PositiveIntegerField(default=100, validators=[MinValueValidator(0)])
     fecha_subida = models.DateTimeField(auto_now_add=True)
     desarrollador = models.ForeignKey(
         PerfilUsuario,
@@ -60,6 +65,42 @@ class AlertaMalware(models.Model):
         return f"Alerta de Malware en: {self.juego.titulo}"
 
 
+class Pedido(models.Model):
+    ESTADOS = (
+        ("pendiente", "Pendiente"),
+        ("completado", "Completado"),
+        ("cancelado", "Cancelado"),
+    )
+
+    usuario = models.ForeignKey(
+        PerfilUsuario, on_delete=models.PROTECT, related_name="pedidos"
+    )
+    estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    class Meta:
+        ordering = ("-fecha_creacion", "-pk")
+
+    def __str__(self):
+        return f"Pedido #{self.pk} de {self.usuario.usuario.username}"
+
+
+class DetallePedido(models.Model):
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="detalles")
+    juego = models.ForeignKey(Juego, on_delete=models.PROTECT, related_name="detalles_pedido")
+    cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    edicion = models.CharField(max_length=20, default="Estándar")
+
+    @property
+    def subtotal(self):
+        return self.cantidad * self.precio_unitario
+
+    def __str__(self):
+        return f"{self.cantidad} x {self.juego.titulo} (pedido #{self.pedido_id})"
+
+
 class LicenciaCompra(models.Model):
     ORIGENES = (
         ("compra", "Compra"),
@@ -73,6 +114,9 @@ class LicenciaCompra(models.Model):
         related_name="licencias",
     )
     juego = models.ForeignKey(Juego, on_delete=models.CASCADE, related_name="licencias")
+    pedido = models.ForeignKey(
+        Pedido, on_delete=models.SET_NULL, null=True, blank=True, related_name="licencias"
+    )
     edicion = models.CharField(max_length=20, default="Estándar")
     clave = models.CharField(max_length=40, unique=True)
     origen = models.CharField(max_length=20, choices=ORIGENES, default="compra")

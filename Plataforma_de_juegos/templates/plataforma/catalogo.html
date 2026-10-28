@@ -15,7 +15,7 @@
       <div class="flex items-center gap-2">
         <nav class="flex items-center gap-1">
           <a data-view="store" href="{% url 'administrador:catalogo' %}?view=store" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-store"></i><span class="hidden xl:inline"> Tienda</span></a>
-          {% if user.is_authenticated %}<a data-view="library" href="{% url 'clientes:biblioteca' %}" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-layer-group"></i><span class="hidden xl:inline"> Biblioteca</span></a>{% endif %}
+          {% if user.is_authenticated %}<a data-view="library" href="{% url 'clientes:biblioteca' %}" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-layer-group"></i><span class="hidden xl:inline"> Biblioteca</span></a><a href="{% url 'clientes:perfil' %}" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-user"></i><span class="hidden xl:inline"> Perfil</span></a><a href="{% url 'clientes:pedidos' %}" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-receipt"></i><span class="hidden xl:inline"> Pedidos</span></a>{% endif %}
           {% if perfil and perfil.rol == "desarrollador" %}<a data-view="dev" href="{% url 'administrador:catalogo' %}?view=dev" class="px-3 py-2 rounded-xl text-xs font-bold text-purple-300 hover:bg-purple-950/40 border border-purple-500/30"><i class="fa-solid fa-laptop-code"></i><span class="hidden xl:inline"> Portal Dev</span></a>{% endif %}
           {% if is_dios or is_admin_especial %}<a data-view="admin" href="{% url 'administrador:panel' %}?view=admin" class="px-3 py-2 rounded-xl text-xs font-bold text-amber-300 hover:bg-amber-950/40 border border-amber-500/30"><i class="fa-solid fa-shield-halved"></i><span class="hidden xl:inline"> Panel</span></a>{% endif %}
         </nav>
@@ -239,6 +239,7 @@
     <form method="post" enctype="multipart/form-data" action="{% url 'desarrollador:publicar' %}" class="space-y-4 mt-5">{% csrf_token %}
       <input name="titulo" required placeholder="Título" class="w-full glass-input rounded-xl px-4 py-3">
       <div class="grid grid-cols-2 gap-3"><select name="categoria" class="glass-input rounded-xl px-3 py-3"><option>Acción</option><option>Estrategia</option><option>Indie</option><option>Aventura</option></select><input name="precio" type="number" min="0" step="0.01" required placeholder="Precio USD" class="glass-input rounded-xl px-4 py-3"></div>
+      <input name="stock" type="number" min="0" step="1" value="100" required placeholder="Unidades disponibles" class="w-full glass-input rounded-xl px-4 py-3">
       <input name="precio_original" type="number" min="0" step="0.01" placeholder="Precio original" class="w-full glass-input rounded-xl px-4 py-3">
       <input name="imagen_url" type="url" placeholder="URL portada" class="w-full glass-input rounded-xl px-4 py-3">
       <textarea name="descripcion" rows="4" required placeholder="Descripción" class="w-full glass-input rounded-xl px-4 py-3"></textarea>
