@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from django.db import migrations
 
 
@@ -11,7 +12,8 @@ def crear_datos_demo(apps, schema_editor):
         defaults={"email": "demo@nexus.local"},
     )
     if created:
-        user.set_unusable_password()
+        # Historical migration models do not expose User helper methods.
+        user.password = make_password(None)
         user.save(update_fields=["password"])
 
     profile, _ = PerfilUsuario.objects.get_or_create(
