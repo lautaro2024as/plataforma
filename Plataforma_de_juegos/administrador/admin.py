@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AlertaMalware, Juego, LicenciaCompra, PerfilUsuario
+from .models import AlertaMalware, DetallePedido, Juego, LicenciaCompra, Pedido, PerfilUsuario
 
 
 @admin.register(PerfilUsuario)
@@ -17,6 +17,7 @@ class JuegoAdmin(admin.ModelAdmin):
         "desarrollador",
         "categoria",
         "precio",
+        "stock",
         "estado",
         "etiqueta_mas_18",
     )
@@ -42,3 +43,18 @@ class LicenciaCompraAdmin(admin.ModelAdmin):
     )
     search_fields = ("jugador__usuario__username", "juego__titulo", "clave")
     readonly_fields = ("jugador", "juego", "edicion", "clave", "origen", "fecha_compra", "monto_pagado")
+
+
+@admin.register(Pedido)
+class PedidoAdmin(admin.ModelAdmin):
+    list_display = ("id", "usuario", "estado", "fecha_creacion", "total")
+    list_filter = ("estado", "fecha_creacion")
+    search_fields = ("usuario__usuario__username", "usuario__usuario__email")
+    readonly_fields = ("usuario", "fecha_creacion", "total")
+
+
+@admin.register(DetallePedido)
+class DetallePedidoAdmin(admin.ModelAdmin):
+    list_display = ("pedido", "juego", "cantidad", "precio_unitario", "edicion")
+    list_filter = ("edicion",)
+    readonly_fields = ("pedido", "juego", "cantidad", "precio_unitario", "edicion")

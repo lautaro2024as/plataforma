@@ -1,10 +1,10 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es" class="dark arg-html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}NEXUS - Gaming Marketplace{% endblock %}</title>
+    <title>{% block title %}ARG GAMES — Tienda de videojuegos{% endblock %}</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -32,11 +32,11 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/nexus.css' %}">
+    <link rel="stylesheet" href="{% static 'css/arg-games.css' %}">
     {% block extra_head %}{% endblock %}
 </head>
 <body
-    class="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans selection:bg-cyan-400 selection:text-black overflow-x-hidden"
+    class="arg-theme min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans selection:bg-cyan-400 selection:text-black overflow-x-hidden"
     data-active-view="{{ active_view|default:'store' }}"
 >
     <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -47,7 +47,7 @@
 
     {% block content %}{% endblock %}
 
-    <script src="{% static 'js/nexus.js' %}" defer></script>
+    <script src="{% static 'js/arg-games.js' %}" defer></script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

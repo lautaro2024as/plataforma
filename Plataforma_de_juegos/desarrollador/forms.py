@@ -10,6 +10,7 @@ class PublicarJuegoForm(forms.ModelForm):
             "titulo",
             "categoria",
             "precio",
+            "stock",
             "precio_original",
             "imagen_url",
             "descripcion",

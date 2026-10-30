@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from dios.authz import has_admin_permission, is_admin_especial, is_dios
+from clientes.models import CarritoItem
 from .models import Juego, LicenciaCompra, PerfilUsuario
 
 
@@ -179,27 +180,25 @@ def catalogo_juegos(request):
         }
 
     cart_items = []
-    cart_total = Decimal("0")
-    raw_cart = request.session.get("nexus_cart", [])
-
-    for index, item in enumerate(raw_cart):
-        try:
-            game = Juego.objects.get(pk=int(item.get("game_id", 0)), estado="publicado")
-        except (Juego.DoesNotExist, ValueError, TypeError, AttributeError, KeyError):
-            continue
-
-        edition = item.get("edition", "Estándar")
-        extra = {
-            "Estándar": Decimal("0"),
-            "Deluxe": Decimal("12"),
-            "Ultimate": Decimal("28"),
-        }.get(edition, Decimal("0"))
-
-        final_price = game.precio + extra
-        cart_items.append(
-            {"index": index, "game": game, "edition": edition, "price": final_price}
-        )
-        cart_total += final_price
+    cart_total = Decimal("0.00")
+    if perfil:
+        for item in CarritoItem.objects.filter(perfil=perfil, juego__estado="publicado").select_related("juego"):
+            extra = {
+                "Estándar": Decimal("0.00"),
+                "Deluxe": Decimal("12.00"),
+                "Ultimate": Decimal("28.00"),
+            }.get(item.edicion, Decimal("0.00"))
+            unit_price = item.juego.precio + extra
+            cart_items.append({
+                "id": item.pk,
+                "index": item.pk,
+                "game": item.juego,
+                "edition": item.edicion,
+                "quantity": item.cantidad,
+                "price": unit_price,
+                "line_total": unit_price * item.cantidad,
+            })
+            cart_total += unit_price * item.cantidad
 
     game_data = []
     for game in juegos_list:

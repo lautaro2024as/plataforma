@@ -1,0 +1,18 @@
+{% extends "plataforma/base.html" %}
+{% block title %}ARG GAMES - Mis pedidos{% endblock %}
+{% block content %}
+<main class="relative z-10 max-w-4xl mx-auto px-4 py-10 w-full">
+  <div class="glass-panel rounded-3xl p-6 sm:p-8">
+    <div class="flex items-center justify-between gap-3 mb-6"><h1 class="text-3xl font-black text-white">Mis pedidos</h1><a href="{% url 'clientes:perfil' %}" class="text-cyan-300 text-sm">Mi perfil</a></div>
+    <div class="space-y-3">
+      {% for pedido in pedidos %}
+        <a href="{% url 'clientes:pedido_detalle' pedido.pk %}" class="block p-4 rounded-2xl border border-slate-700 bg-slate-950/50 hover:border-cyan-500">
+          <div class="flex flex-wrap justify-between gap-2"><strong>Pedido #{{ pedido.pk }}</strong><span>{{ pedido.get_estado_display }}</span></div>
+          <p class="text-sm text-slate-400 mt-1">{{ pedido.fecha_creacion|date:"d/m/Y H:i" }} · {{ pedido.detalles.count }} línea(s)</p>
+          <p class="text-xl font-black text-emerald-300 mt-2">US$ {{ pedido.total|floatformat:2 }}</p>
+        </a>
+      {% empty %}<p class="text-slate-400 py-8">Todavía no tenés pedidos.</p>{% endfor %}
+    </div>
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "plataforma/base.html" %}
+{% block title %}ARG GAMES - Pedido #{{ pedido.pk }}{% endblock %}
+{% block content %}
+<main class="relative z-10 max-w-4xl mx-auto px-4 py-10 w-full">
+  <div class="glass-panel rounded-3xl p-6 sm:p-8">
+    <div class="flex flex-wrap justify-between gap-3 border-b border-slate-700 pb-5 mb-5"><div><h1 class="text-3xl font-black text-white">Pedido #{{ pedido.pk }}</h1><p class="text-sm text-slate-400 mt-1">{{ pedido.fecha_creacion|date:"d/m/Y H:i" }}</p></div><span class="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-200">{{ pedido.get_estado_display }}</span></div>
+    <div class="space-y-3">{% for linea in pedido.detalles.all %}
+      <article class="p-4 rounded-2xl bg-slate-950/50 border border-slate-800"><div class="flex justify-between gap-3"><strong>{{ linea.juego.titulo }} — {{ linea.edicion }}</strong><span>x{{ linea.cantidad }}</span></div><p class="text-sm text-slate-400 mt-1">Precio unitario histórico: US$ {{ linea.precio_unitario|floatformat:2 }}</p><p class="text-right font-bold text-emerald-300">Subtotal: US$ {{ linea.subtotal|floatformat:2 }}</p></article>
+    {% endfor %}</div>
+    <div class="text-right border-t border-slate-700 mt-6 pt-5"><span class="text-slate-400 text-sm">Total guardado en el pedido</span><p class="text-3xl font-black text-emerald-300">US$ {{ pedido.total|floatformat:2 }}</p></div>
+    <a href="{% url 'clientes:pedidos' %}" class="inline-block mt-5 text-cyan-300">Volver a mis pedidos</a>
+  </div>
+</main>
+{% endblock %}
